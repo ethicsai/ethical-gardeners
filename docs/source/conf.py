@@ -35,6 +35,8 @@ extensions = [
     'sphinx.ext.viewcode',
     # Render the docs for multiple versions (tags, branches, ...)
     'sphinx_multiversion',
+    # Use Napoleon to pre-process Google/NumPy style docstrings
+    'sphinx.ext.napoleon',
 ]
 
 # Enable autosummary
@@ -66,6 +68,17 @@ smv_released_pattern = r'^tags/v.*$'
 
 # Each version gets a subdir based on its name (e.g., `master`, `v1.0.0`, ...)
 smv_outputdir_format = '{ref.name}'
+
+# -- Napoleon configuration --------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
+
+# Enable Google style but disable NumPy. This will enforce the Google style
+# and avoid mixing both styles in the docs.
+# See https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings
+napoleon_google_docstring = True
+napoleon_numpy_docstring = False
+# Render the `__init__` (constructor) docs separately from the class attributes
+napoleon_include_init_with_doc = False
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
