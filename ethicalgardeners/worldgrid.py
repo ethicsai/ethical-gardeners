@@ -5,8 +5,8 @@ This module defines the fundamental structures to represent the physical space
 where agents (gardeners) interact with the environment, including cells and flowers.
 """
 from enum import Enum
-from ethicalgardeners.Action import Action
-from ethicalgardeners.Constants import POLLUTION_INCREMENT, FLOWERS_DATA
+from ethicalgardeners.action import Action
+from ethicalgardeners.constants import POLLUTION_INCREMENT, FLOWERS_DATA
 
 
 class CellType(Enum):
