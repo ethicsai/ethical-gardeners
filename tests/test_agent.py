@@ -17,8 +17,8 @@ class TestAgent(unittest.TestCase):
     def test_move_up(self):
         """Test agent movement in the UP direction.
 
-        This test verifies that when the agent moves up, its position is correctly
-        updated by decreasing the row coordinate by 1.
+        This test verifies that when the agent moves up, its position is
+        correctly updated by decreasing the row coordinate by 1.
         """
         self.agent.move(Action.UP)
 
@@ -31,8 +31,8 @@ class TestAgent(unittest.TestCase):
     def test_move_down(self):
         """Test agent movement in the DOWN direction.
 
-        This test verifies that when the agent moves down, its position is correctly
-        updated by increasing the row coordinate by 1.
+        This test verifies that when the agent moves down, its position is
+        correctly updated by increasing the row coordinate by 1.
         """
         self.agent.move(Action.DOWN)
 
@@ -45,8 +45,8 @@ class TestAgent(unittest.TestCase):
     def test_move_left(self):
         """Test agent movement in the LEFT direction.
 
-        This test verifies that when the agent moves left, its position is correctly
-        updated by decreasing the column coordinate by 1.
+        This test verifies that when the agent moves left, its position is
+        correctly updated by decreasing the column coordinate by 1.
         """
         self.agent.move(Action.LEFT)
 
@@ -59,8 +59,8 @@ class TestAgent(unittest.TestCase):
     def test_move_right(self):
         """Test agent movement in the RIGHT direction.
 
-        This test verifies that when the agent moves right, its position is correctly
-        updated by increasing the column coordinate by 1.
+        This test verifies that when the agent moves right, its position is
+        correctly updated by increasing the column coordinate by 1.
         """
         self.agent.move(Action.RIGHT)
 

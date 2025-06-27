@@ -3,14 +3,15 @@ from unittest.mock import Mock
 from ethicalgardeners.worldgrid import Cell, CellType
 from ethicalgardeners.constants import POLLUTION_INCREMENT
 
+
 class TestCell(unittest.TestCase):
     """Unit tests for the :py:class:`.Cell` class."""
 
     def setUp(self):
         """Initialize necessary objects before tests.
 
-        This method sets up a test environment with a ground cell at medium pollution
-        and a mock flower that reduces pollution by 5.
+        This method sets up a test environment with a ground cell at medium
+        pollution and a mock flower that reduces pollution by 5.
         """
         self.min_pollution = 0
         self.max_pollution = 100
@@ -23,8 +24,9 @@ class TestCell(unittest.TestCase):
     def test_update_pollution_with_flower_above_min(self):
         """Test pollution update when a cell has a flower and is above minimum.
 
-        This test verifies that the cell's pollution decreases by the correct amount
-        when it contains a flower and its pollution level is above the minimum.
+        This test verifies that the cell's pollution decreases by the correct
+        amount when it contains a flower and its pollution level is above the
+        minimum.
         """
         # Add a flower to the cell
         self.cell.flower = self.mock_flower
@@ -37,10 +39,12 @@ class TestCell(unittest.TestCase):
         self.assertEqual(self.cell.pollution, initial_pollution - 5)
 
     def test_update_pollution_with_flower_at_min(self):
-        """Test pollution update when a cell has a flower and is at minimum pollution.
+        """Test pollution update when a cell has a flower and is at minimum
+        pollution.
 
         This test verifies that the cell's pollution stays at the minimum value
-        when it contains a flower and its pollution is already at the minimum level.
+        when it contains a flower and its pollution is already at the minimum
+        level.
         """
         # Set the cell to minimum pollution
         self.cell.pollution = self.min_pollution
@@ -54,8 +58,9 @@ class TestCell(unittest.TestCase):
     def test_update_pollution_without_flower_below_max(self):
         """Test pollution update when a cell has no flower and is below maximum.
 
-        This test verifies that the cell's pollution increases by the correct amount
-        when it does not contain a flower and its pollution level is below the maximum.
+        This test verifies that the cell's pollution increases by the correct
+        amount when it does not contain a flower and its pollution level is
+        below the maximum.
         """
         self.cell.flower = None
 
@@ -67,10 +72,12 @@ class TestCell(unittest.TestCase):
         self.assertEqual(self.cell.pollution, initial_pollution + POLLUTION_INCREMENT)
 
     def test_update_pollution_without_flower_at_max(self):
-        """Test pollution update when a cell has no flower and is at maximum pollution.
+        """Test pollution update when a cell has no flower and is at maximum
+        pollution.
 
         This test verifies that the cell's pollution stays at the maximum value
-        when it does not contain a flower and its pollution is already at the maximum level.
+        when it does not contain a flower and its pollution is already at the
+        maximum level.
         """
         # Set the cell to maximum pollution
         self.cell.pollution = self.max_pollution

@@ -18,8 +18,8 @@ class TestFlower(unittest.TestCase):
     def test_grow_from_initial_stage(self):
         """Test flower growth from its initial stage.
 
-        This test verifies that when the grow method is called on a newly planted flower,
-        its current_growth_stage increases by 1.
+        This test verifies that when the grow method is called on a newly
+        planted flower, its current_growth_stage increases by 1.
         """
         initial_stage = self.flower.current_growth_stage
 
@@ -31,8 +31,8 @@ class TestFlower(unittest.TestCase):
     def test_grow_multiple_times(self):
         """Test flower growth over multiple stages.
 
-        This test verifies that a flower grows correctly through multiple stages,
-        with each call to grow() incrementing the growth stage by 1.
+        This test verifies that a flower grows correctly through multiple
+        stages, with each call to grow() incrementing the growth stage by 1.
         """
         initial_stage = self.flower.current_growth_stage
 
