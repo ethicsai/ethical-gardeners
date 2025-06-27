@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import Mock
 from ethicalgardeners.worldgrid import Cell, CellType
-from ethicalgardeners.constants import POLLUTION_INCREMENT
 
 
 class TestCell(unittest.TestCase):
@@ -15,6 +14,7 @@ class TestCell(unittest.TestCase):
         """
         self.min_pollution = 0
         self.max_pollution = 100
+        self.pollution_increment = 1
         self.cell = Cell(CellType.GROUND, 50)
 
         # Create a mock flower with a pollution reduction value
@@ -69,7 +69,7 @@ class TestCell(unittest.TestCase):
         self.cell.update_pollution(self.min_pollution, self.max_pollution)
 
         # Verify the pollution has increased by the correct amount
-        self.assertEqual(self.cell.pollution, initial_pollution + POLLUTION_INCREMENT)
+        self.assertEqual(self.cell.pollution, initial_pollution + self.pollution_increment)
 
     def test_update_pollution_without_flower_at_max(self):
         """Test pollution update when a cell has no flower and is at maximum
