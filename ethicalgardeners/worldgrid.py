@@ -6,7 +6,9 @@ where agents (gardeners) interact with the environment, including cells and flow
 """
 from enum import Enum
 from ethicalgardeners.action import Action
-from ethicalgardeners.constants import POLLUTION_INCREMENT, FLOWERS_DATA
+from ethicalgardeners.defaultvalues import (FLOWERS_DATA, \
+    CELL_POLLUTION_INCREMENT, STARTING_CELL_POLLUTION, \
+    STARTING_AGENT_SEEDS, STARTING_AGENT_MONEY)
 
 
 class CellType(Enum):
@@ -35,20 +37,28 @@ class Cell:
         flower (Flower): The flower present in this cell, if any.
         Agent (Agent): The agent currently occupying this cell, if any.
         pollution (float): Current pollution level of the cell.
+        pollution_increment (float): Amount by which pollution increases each
+                                     step if no flower in the cell.
+
     """
 
-    def __init__(self, cell_type, pollution):
+    def __init__(self, cell_type, pollution=STARTING_CELL_POLLUTION,
+                 pollution_increment=CELL_POLLUTION_INCREMENT):
         """
         Create a new cell.
 
         Args:
             cell_type (CellType): The type of cell to create.
-            pollution (float): Initial pollution level of the cell.
+            pollution (float): Initial pollution level of the cell. Defaults to 50.
+            pollution_increment (float): Amount by which pollution increases
+                                         each step if no flower in the cell.
+                                         Defaults to 1.
         """
         self.cell_type = cell_type
         self.flower = None
         self.Agent = None
         self.pollution = pollution
+        self.pollution_increment = pollution_increment
 
     def update_pollution(self, min_pollution, max_pollution):
         """
@@ -66,7 +76,7 @@ class Cell:
         if self.have_flower() and self.pollution > min_pollution:
             self.pollution -= self.flower.get_pollution_reduction()
         elif not self.have_flower() and self.pollution < max_pollution:
-            self.pollution += POLLUTION_INCREMENT
+            self.pollution += self.pollution_increment
 
     def is_ground(self):
         """
@@ -116,18 +126,21 @@ class Flower:
                                     starting at 0.
     """
 
-    def __init__(self, position, flower_type):
+    def __init__(self, position, flower_type, flowers_data=FLOWERS_DATA):
         """
         Create a new flower.
 
         Args:
             position (tuple): The (x, y) coordinates where the flower is planted.
             flower_type (int): The type of flower to create.
+            flowers_data (dict): Configuration data for flower types, mapping
+                                 flower type IDs to their properties (price,
+                                 pollution reduction).
         """
         self.position = position
         self.flower_type = flower_type
-        self.price = FLOWERS_DATA[flower_type]['price']
-        self.pollution_reduction = FLOWERS_DATA[flower_type]["pollution_reduction"]
+        self.price = flowers_data[flower_type]['price']
+        self.pollution_reduction = flowers_data[flower_type]["pollution_reduction"]
         self.num_growth_stage = len(self.pollution_reduction)
         self.current_growth_stage = 0
 
@@ -179,7 +192,8 @@ class Agent:
         flowers_planted (dict): Counter of flowers planted by type.
         flowers_harvested (dict): Counter of flowers harvested by type.
     """
-    def __init__(self, position, money=0, seeds=None):
+    def __init__(self, position, money=STARTING_AGENT_MONEY,
+                 seeds=STARTING_AGENT_SEEDS):
         """
         Create a new agent.
 
@@ -188,17 +202,11 @@ class Agent:
             money (float, optional): Initial amount of money the agent has.
                                      Defaults to 0.
             seeds (dict, optional): Dictionary mapping flower types to initial
-                                    seed counts. If None, will initialize with
-                                    10 seeds of each flower type.
+                                    seed counts. Defaults to 10 for each type.
         """
         self.position = position
         self.money = money
-
-        if seeds is None:
-            self.seeds = {i: 10 for i in range(len(FLOWERS_DATA))}
-        else:
-            self.seeds = seeds
-
+        self.seeds = seeds
         self.flowers_planted = {i: 0 for i in self.seeds}
         self.flowers_harvested = {i: 0 for i in self.seeds}
 
