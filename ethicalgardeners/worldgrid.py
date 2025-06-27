@@ -7,8 +7,180 @@ where agents (gardeners) interact with the environment, including cells and flow
 from enum import Enum
 from ethicalgardeners.action import Action
 from ethicalgardeners.defaultvalues import (FLOWERS_DATA, \
-    CELL_POLLUTION_INCREMENT, STARTING_CELL_POLLUTION, \
-    STARTING_AGENT_SEEDS, STARTING_AGENT_MONEY)
+                                            POLLUTION_INCREMENT,
+                                            STARTING_CELL_POLLUTION, \
+                                            STARTING_AGENT_SEEDS,
+                                            STARTING_AGENT_MONEY, COLLISIONS_ON,
+                                            NUM_SEEDS_RETURNED, DEFAULT_WIDTH,
+                                            DEFAULT_HEIGHT, MIN_POLLUTION,
+                                            MAX_POLLUTION)
+
+
+class WorldGrid:
+    """
+    Represents the physical grid world environment for the Ethical Gardeners simulation.
+
+    The WorldGrid manages a 2D grid of cells. It handles the flowers and agents
+    and manages their interactions with the environment. The grid can be
+    initialized from a file, randomly generated, or manually configured.
+
+    Attributes:
+        width (int): The width of the grid in cells.
+        height (int): The height of the grid in cells.
+        min_pollution (float): Minimum allowed pollution level for any cell.
+        max_pollution (float): Maximum allowed pollution level for any cell.
+        pollution_increment (float): Amount by which pollution increases in
+                                     empty cells.
+        num_seeds_returned (int): Number of seeds returned when harvesting a flower.
+        flowers_data (dict): Configuration data for different types of flowers.
+        collisions_on (bool): Whether agents can occupy the same cell simultaneously.
+        grid (list): 2D array of Cell objects representing the environment.
+        agents (list): List of all Agent objects in the environment.
+        flowers (dict): Dictionary of flower's name and color organized by
+                        flower type.
+    """
+
+    def __init__(self, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT,
+                 min_pollution=MIN_POLLUTION, max_pollution=MAX_POLLUTION,
+                 pollution_increment=POLLUTION_INCREMENT,
+                 num_seeds_returned=NUM_SEEDS_RETURNED,
+                 flowers_data=FLOWERS_DATA, collisions_on=COLLISIONS_ON):
+        """
+        Create a new grid world environment.
+
+        Args:
+            width (int): The width of the grid in cells.
+            height (int): The height of the grid in cells.
+            min_pollution (float): Minimum allowed pollution level for any cell.
+            max_pollution (float): Maximum allowed pollution level for any cell.
+            pollution_increment (float): Amount by which pollution increases in
+                                         empty cells.
+            num_seeds_returned (int): Number of seeds returned when harvesting
+                                      a flower.
+            flowers_data (dict): Configuration data for different types of flowers.
+            collisions_on (bool): Whether agents can occupy the same cell
+                                  simultaneously.
+        """
+        self.width = width
+        self.height = height
+        self.min_pollution = min_pollution
+        self.max_pollution = max_pollution
+        self.pollution_increment = pollution_increment
+        self.num_seeds_returned = num_seeds_returned
+        self.flowers_data = flowers_data
+        self.collisions_on = collisions_on
+
+        self.grid = [[]]
+        self.agents = []
+        self.flowers = {i: [] for i in range(len(flowers_data))}
+
+    def place_agent(self, agent):
+        """
+        Place an agent in the grid at its current position.
+
+        Args:
+            agent (Agent): The agent to place in the grid.
+
+        Raises:
+            ValueError: If the agent's position is invalid or already occupied
+                        and collisions are not allowed.
+        """
+        if not self.valid_position(agent.position):
+            raise ValueError("Invalid position for agent.")
+
+        cell = self.get_cell(agent.position)
+
+        if cell.have_Agent() and not self.collisions_on:
+            raise ValueError("Cannot place agent in an occupied cell without "
+                             "collisions enabled.")
+
+        cell.Agent = agent
+        self.agents.append(agent)
+
+    def place_flower(self, flower):
+        """
+        Place a flower in the grid at its specified position.
+
+        Args:
+            flower (Flower): The flower to place in the grid.
+
+        Raises:
+            ValueError: If the flower's position is invalid or if the cell
+                        already contains a flower.
+        """
+        if not self.valid_position(flower.position):
+            raise ValueError("Invalid position for flower.")
+
+        cell = self.get_cell(flower.position)
+
+        if cell.have_flower():
+            raise ValueError("Cannot place flower in a cell that already has "
+                             "a flower.")
+
+        cell.flower = flower
+
+    def remove_flower(self, position):
+        """
+        Removes a flower from the specified position in the grid.
+
+        Args:
+            position (tuple): The (x, y) coordinates of the flower to remove.
+
+        Raises:
+            ValueError: If there is no flower at the specified position.
+        """
+        cell = self.get_cell(position)
+        if not cell.have_flower():
+            raise ValueError("Cannot remove flower from a cell that does not "
+                             "have a flower.")
+
+        cell.flower = None
+
+    def update_pollution(self):
+        """
+        Updates the pollution level of all cells in the grid.
+
+        For each cell, if it contains a flower, pollution decreases by the
+        flower's pollution reduction value. If it does not contain a flower,
+        pollution increases by the pollution increment value.
+        """
+        for row in self.grid:
+            for cell in row:
+                cell.update_pollution(self.min_pollution, self.max_pollution)
+
+    def valid_position(self, position):
+        """
+        Checks if a position is valid for an agent to move to.
+
+        A position is valid if:
+        1. It is within the grid boundaries
+        2. It is not an obstacle cell
+
+        Args:
+            position (tuple): The (x, y) coordinates to check.
+
+        Returns:
+            bool: True if the position is valid, False otherwise.
+        """
+        if 0 <= position[0] < self.height and 0 <= position[1] < self.width:
+            if not self.get_cell(position).cell_type == CellType.OBSTACLE:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def get_cell(self, position):
+        """
+        Gets the cell at the specified position.
+
+        Args:
+            position (tuple): The (x, y) coordinates of the cell to retrieve.
+
+        Returns:
+            Cell: The cell at the specified position.
+        """
+        return self.grid[position[0]][position[1]]
 
 
 class CellType(Enum):
@@ -43,7 +215,7 @@ class Cell:
     """
 
     def __init__(self, cell_type, pollution=STARTING_CELL_POLLUTION,
-                 pollution_increment=CELL_POLLUTION_INCREMENT):
+                 pollution_increment=POLLUTION_INCREMENT):
         """
         Create a new cell.
 
