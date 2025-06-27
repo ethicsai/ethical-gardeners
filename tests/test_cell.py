@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock
-from ethicalgardeners.WorldGrid import Cell, CellType
-from ethicalgardeners.Constants import POLLUTION_INCREMENT
+from ethicalgardeners.worldgrid import Cell, CellType
+from ethicalgardeners.constants import POLLUTION_INCREMENT
 
 class TestCell(unittest.TestCase):
     """Unit tests for the :py:class:`.Cell` class."""

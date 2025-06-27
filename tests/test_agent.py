@@ -1,6 +1,6 @@
 import unittest
-from ethicalgardeners.WorldGrid import Agent
-from ethicalgardeners.Action import Action
+from ethicalgardeners.worldgrid import Agent
+from ethicalgardeners.action import Action
 
 
 class TestAgent(unittest.TestCase):
