@@ -21,7 +21,7 @@ class WorldGrid:
     Represents the physical grid world environment for the Ethical Gardeners simulation.
 
     The WorldGrid manages a 2D grid of cells. It handles the flowers and agents
-    and manages their interactions with the environment. The grid can be
+    and manages their placement within the environment. The grid can be
     initialized from a file, randomly generated, or manually configured.
 
     Attributes:
@@ -73,6 +73,105 @@ class WorldGrid:
         self.grid = [[]]
         self.agents = []
         self.flowers = {i: [] for i in range(len(flowers_data))}
+
+    def init_from_file(self, file_path):
+        """
+        Initialize the grid from a file.
+
+        The file format supports:
+        - First line: width height
+        - Grid representation: G (ground), O (obstacle), W (wall),
+          FX_Y (ground with flower type X at growth stage Y),
+          AX (ground with agent ID X)
+        - Agent definitions: ID,money,seeds
+        - Flower definitions: type,price,pollution_reduction
+
+        Example:
+        ```
+        10 10
+        G G G W W G G G G G
+        G F0_2 G G W G G G G G
+        G O G A0 W G G G G G
+        G G G G W G G G G G
+        W W W W W G G G G G
+        G G G G G G G G G G
+        G G G G G G G G G G
+        G G G G G G G G G G
+        G G G G G G G G G G
+        G G G G G G G G G G
+        0,100,5|10|3
+        0,2,1|2|3
+        ```
+
+        Args:
+            file_path (str): Path to the file containing the grid configuration.
+        """
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+
+        # Read width and height from the first line
+        first_line = lines[0].strip().split()
+        self.width = int(first_line[0])
+        self.height = int(first_line[1])
+
+        # Initialize the grid with empty cells
+        self.grid = [[Cell(CellType.GROUND) for _ in range(self.width)] for _ in
+                     range(self.height)]
+
+        #parse the grid
+        agents_to_create = {}
+        flowers_to_create = {}
+
+        for i in range(self.height):
+            cells = lines[i + 1].strip().split()
+            for j, cell_code in enumerate(cells):
+                if cell_code == 'G':
+                    self.grid[i][j] = Cell(CellType.GROUND)
+                elif cell_code == 'O':
+                    self.grid[i][j] = Cell(CellType.OBSTACLE)
+                elif cell_code == 'W':
+                    self.grid[i][j] = Cell(CellType.WALL)
+                elif cell_code.startswith('F'):
+                    self.grid[i][j] = Cell(CellType.GROUND)
+                    flower_info = cell_code[1:].split('_')
+                    flower_type = int(flower_info[0])
+                    growth_stage = int(flower_info[1])
+                    flowers_to_create[(i, j)] = (flower_type, growth_stage)
+                elif cell_code.startswith('A'):
+                    self.grid[i][j] = Cell(CellType.GROUND)
+                    agent_id = int(cell_code[1:])
+                    agents_to_create[agent_id] = (i, j)
+
+        # Create agents
+        agent_def_lines = lines[self.height + 1:self.height + 1 + len(agents_to_create)]
+        for line in agent_def_lines:
+            agent_data = line.strip().split(',')
+            agent_id = int(agent_data[0])
+            position = agents_to_create[agent_id]
+            money = float(agent_data[1])
+            seeds = list(map(int, agent_data[2].split('|')))
+            agent = Agent(position, money, seeds)
+            self.place_agent(agent)
+
+        # Create flowers_data
+        flower_def_lines = lines[self.height + 1 + len(agents_to_create):]
+        for line in flower_def_lines:
+            flower_data = line.strip().split(',')
+            flower_type = int(flower_data[0])
+            price = int(flower_data[1])
+            pollution_reduction = list(map(float, flower_data[2].split('|')))
+            self.flowers_data[flower_type] = {
+                'price': price,
+                'pollution_reduction': pollution_reduction
+            }
+
+        # Place flowers with their growth stage
+        for position, (flower_type, growth_stage) in flowers_to_create.items():
+            flower = Flower(position, flower_type, self.flowers_data)
+            # Set growth stage
+            for _ in range(growth_stage):
+                flower.grow()
+            self.place_flower(flower)
 
     def place_agent(self, agent):
         """
