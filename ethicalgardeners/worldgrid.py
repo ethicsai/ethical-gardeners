@@ -27,7 +27,8 @@ class Cell:
     """
     Represents a single cell in the grid world.
 
-    It can contain a flower, an agent, and has a pollution level that evolves over time.
+    It can contain a flower, an agent, and has a pollution level that evolves
+    over time.
 
     Attributes:
         cell_type (CellType): Type of the cell (ground, obstacle, wall).
@@ -100,16 +101,19 @@ class Flower:
     Represents a flower that can be planted and harvested in the environment.
 
     Flowers grow through several stages and reduce pollution in their cell.
-    Different flower types have different growth patterns, prices, and pollution
-    reduction capabilities.
+    Different flower types have different growth patterns, prices, and
+    pollution reduction capabilities.
 
     Attributes:
         position (tuple): The (x, y) coordinates of the flower in the grid.
-        flower_type (int): The type of flower, determining its growth and pollution reduction.
+        flower_type (int): The type of flower, determining its growth and
+                           pollution reduction.
         price (float): The monetary value of the flower when harvested.
-        pollution_reduction (list): List of pollution reduction values for each growth stage.
+        pollution_reduction (list): List of pollution reduction values for each
+                                    growth stage.
         num_growth_stage (int): Total number of growth stages for this flower.
-        current_growth_stage (int): Current growth stage of the flower, starting at 0.
+        current_growth_stage (int): Current growth stage of the flower,
+                                    starting at 0.
     """
 
     def __init__(self, position, flower_type):
@@ -154,7 +158,8 @@ class Flower:
         flower type.
 
         Returns:
-            float: The amount of pollution reduced by this flower at its current stage.
+            float: The amount of pollution reduced by this flower at its
+            current stage.
         """
         return self.pollution_reduction[self.current_growth_stage]
 
@@ -169,7 +174,8 @@ class Agent:
     Attributes:
         position (tuple): The (x, y) coordinates of the agent in the grid.
         money (float): The agent's current monetary wealth.
-        seeds (dict): Dictionary mapping flower types to the number of seeds the agent has.
+        seeds (dict): Dictionary mapping flower types to the number of seeds
+                      the agent has.
         flowers_planted (dict): Counter of flowers planted by type.
         flowers_harvested (dict): Counter of flowers harvested by type.
     """
@@ -179,9 +185,11 @@ class Agent:
 
         Args:
             position (tuple): The (x, y) coordinates where the agent starts.
-            money (float, optional): Initial amount of money the agent has. Defaults to 0.
-            seeds (dict, optional): Dictionary mapping flower types to initial seed counts.
-                                   If None, will initialize with 10 seeds of each flower type.
+            money (float, optional): Initial amount of money the agent has.
+                                     Defaults to 0.
+            seeds (dict, optional): Dictionary mapping flower types to initial
+                                    seed counts. If None, will initialize with
+                                    10 seeds of each flower type.
         """
         self.position = position
         self.money = money
@@ -201,7 +209,8 @@ class Agent:
         Updates the agent's position based on the direction action.
 
         Args:
-            direction (:py:class:`.Action`): The direction to move (UP, DOWN, LEFT, RIGHT).
+            direction (:py:class:`.Action`): The direction to move (UP, DOWN,
+            LEFT, RIGHT).
         """
         if direction == Action.UP:
             self.position = (self.position[0] - 1, self.position[1])
@@ -242,7 +251,8 @@ class Agent:
             flower_type (int): The type of flower to plant.
 
         Returns:
-            bool: True if the seed was successfully used, False if no seeds available.
+            bool: True if the seed was successfully used, False if no seeds
+            available.
         """
         if self.can_plant(flower_type):
             if self.seeds[flower_type] != -1:
