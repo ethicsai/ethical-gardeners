@@ -16,3 +16,9 @@ This project is under construction!
    :maxdepth: 2
    :caption: Contents:
 
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: API
+
+   api
