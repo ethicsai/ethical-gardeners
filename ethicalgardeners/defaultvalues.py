@@ -92,3 +92,47 @@ Default setting for agent collision detection.
 When True, agents cannot occupy the same cell simultaneously. When False,
 multiple agents can occupy the same position in the grid.
 """
+
+DEFAULT_OBSTACLES_RATIO = 0.2
+"""
+Default ratio of obstacles to place when randomly initializing the grid.
+
+This constant defines the proportion of cells (0.0 to 1.0) that will be set as 
+obstacles when using the :py:meth:`.WorldGrid.init_random` method.
+"""
+
+DEFAULT_NB_AGENTS = 2
+"""
+Default number of agents to place when randomly initializing the grid.
+
+This constant defines how many :py:class:`.Agent` instances will be created and 
+placed on valid positions when using the :py:meth:`.WorldGrid.init_random` method.
+"""
+
+DEFAULT_GRID_CONFIG = {
+    'width': DEFAULT_WIDTH,
+    'height': DEFAULT_HEIGHT,
+    'cells': [
+        {'position': (4, 4), 'type': 'OBSTACLE'},
+        {'position': (5, 5), 'type': 'OBSTACLE'},
+        {'position': (6, 6), 'type': 'OBSTACLE'}
+    ],
+    'agents': [
+        {'position': (1, 1), 'money': STARTING_AGENT_MONEY, 'seeds': STARTING_AGENT_SEEDS},
+        {'position': (9, 9), 'money': STARTING_AGENT_MONEY, 'seeds': STARTING_AGENT_SEEDS}
+    ],
+    'flowers': [
+    ]
+}
+"""
+Default configuration dictionary for grid initialization from code.
+
+This dictionary provides a standard configuration when initializing a grid using 
+the :py:meth:`.WorldGrid.init_from_code` method without specifying a custom 
+configuration. It defines:
+
+- Grid dimensions
+- Special cell positions and types
+- Initial agent positions and properties
+- Initial flower placements (empty by default)
+"""
