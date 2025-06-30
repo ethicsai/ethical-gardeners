@@ -277,11 +277,6 @@ class WorldGrid:
             growth_stage = flower_info.get('growth_stage', 0)
 
             self.place_flower(position, flower_type, growth_stage)
-            flower = Flower(position, flower_type, self.flowers_data)
-            # Set growth stage
-            for _ in range(growth_stage):
-                flower.grow()
-            self.place_flower(flower)
 
     def place_agent(self, agent):
         """
