@@ -13,7 +13,12 @@ from ethicalgardeners.defaultvalues import (FLOWERS_DATA, \
                                             STARTING_AGENT_MONEY, COLLISIONS_ON,
                                             NUM_SEEDS_RETURNED, DEFAULT_WIDTH,
                                             DEFAULT_HEIGHT, MIN_POLLUTION,
-                                            MAX_POLLUTION)
+                                            MAX_POLLUTION,
+                                            DEFAULT_OBSTACLES_RATIO,
+                                            DEFAULT_NB_AGENTS,
+                                            DEFAULT_GRID_CONFIG)
+
+import random
 
 
 class WorldGrid:
@@ -170,6 +175,108 @@ class WorldGrid:
 
         # Place flowers with their growth stage
         for position, (flower_type, growth_stage) in flowers_to_create.items():
+            self.place_flower(position, flower_type, growth_stage)
+
+    def init_random(self, obstacles_ratio=DEFAULT_OBSTACLES_RATIO,
+                    nb_agent=DEFAULT_NB_AGENTS):
+        """
+        Initialize a random grid with obstacles and agents.
+
+        Args:
+            obstacles_ratio (float): Proportion of cells that will be obstacles
+                                     (0.0 to 1.0)
+            nb_agent (int): Number of agents to place on the grid
+
+        Raises:
+            ValueError: If there are not enough valid positions for the specified
+                        number of agents after placing obstacles.
+        """
+        # Initialize grid with ground cells
+        self.grid = [[Cell(CellType.GROUND) for _ in range(self.width)] for _ in
+                     range(self.height)]
+
+        # Create a list of all possible positions
+        valid_positions = [(i, j) for i in range(self.height) for j in
+                         range(self.width)]
+
+        # Place obstacles randomly
+        num_obstacles = int(obstacles_ratio * self.width * self.height)
+        obstacle_positions = random.sample(valid_positions, num_obstacles)
+
+        for pos in obstacle_positions:
+            i, j = pos
+            self.grid[i][j] = Cell(CellType.OBSTACLE)
+            valid_positions.remove(pos)
+
+        if len(valid_positions) < nb_agent:
+            raise ValueError(
+                f"Not enough valid positions for {nb_agent} agents")
+
+        agent_positions = random.sample(valid_positions, nb_agent)
+
+        for i in range(nb_agent):
+            # Create agent with default values
+            agent = Agent(agent_positions[i])
+            self.place_agent(agent)
+
+    def init_from_code(self, grid_config=DEFAULT_GRID_CONFIG):
+        """
+        Initialize the grid directly from code using a configuration dictionary.
+
+        This method allows programmatic grid initialization for testing and
+        debugging without having to create external files.
+
+        Args:
+            grid_config (dict, optional): Configuration dictionary with the
+            following structure:
+                {
+                    'width': int,  # Width of the grid
+                    'height': int,  # Height of the grid
+                    'cells': [  # List of special cells (other than GROUND)
+                        {'position': (row, col), 'type': CellType.OBSTACLE},
+                        {'position': (row, col), 'type': CellType.WALL},
+                    ],
+                    'agents': [  # List of agents to create (optional: money and seeds)
+                        {'position': (row, col), 'money': float, 'seeds': [int, int, ...]},
+                    ],
+                    'flowers': [  # List of flowers to create (optional: growth stage)
+                        {'position': (row, col), 'type': int, 'growth_stage': int},
+                    ]
+                }
+        """
+        # Set grid dimensions from the configuration
+        self.width = grid_config.get('width', DEFAULT_WIDTH)
+        self.height = grid_config.get('height', DEFAULT_HEIGHT)
+
+        # Initialize grid with ground cells
+        self.grid = [[Cell(CellType.GROUND) for _ in range(self.width)] for _ in
+                     range(self.height)]
+
+        # Place special cells (obstacles, walls) based on the configuration
+        for cell_info in grid_config.get('cells', []):
+            position = cell_info['position']
+            cell_type_str = cell_info['type']
+
+            # Convert string type to CellType enum
+            cell_type = CellType[cell_type_str.upper()]
+
+            self.grid[position[0]][position[1]] = Cell(cell_type)
+
+        # Create and place agents
+        for agent_info in grid_config.get('agents', []):
+            position = agent_info['position']
+            money = agent_info.get('money', STARTING_AGENT_MONEY)
+            seeds = agent_info.get('seeds', STARTING_AGENT_SEEDS)
+            agent = Agent(position, money, seeds)
+            self.place_agent(agent)
+
+        # Create and place flowers
+        for flower_info in grid_config.get('flowers', []):
+            position = flower_info['position']
+            flower_type = flower_info['type']
+            growth_stage = flower_info.get('growth_stage', 0)
+
+            self.place_flower(position, flower_type, growth_stage)
             flower = Flower(position, flower_type, self.flowers_data)
             # Set growth stage
             for _ in range(growth_stage):
@@ -199,27 +306,34 @@ class WorldGrid:
         cell.Agent = agent
         self.agents.append(agent)
 
-    def place_flower(self, flower):
+    def place_flower(self, position, flower_type, growth_stage=0):
         """
         Place a flower in the grid at its specified position.
 
         Args:
-            flower (Flower): The flower to place in the grid.
+            position: (tuple): The (x, y) coordinates where the flower will be
+                      planted.
+            flower_type (int): The type of flower to plant.
+            growth_stage (int): The initial growth stage of the flower
+                                (default is 0).
 
         Raises:
             ValueError: If the flower's position is invalid or if the cell
                         already contains a flower.
         """
-        if not self.valid_position(flower.position):
+        if not self.valid_position(position):
             raise ValueError("Invalid position for flower.")
 
-        cell = self.get_cell(flower.position)
+        cell = self.get_cell(position)
 
         if cell.have_flower():
             raise ValueError("Cannot place flower in a cell that already has "
                              "a flower.")
 
-        cell.flower = flower
+        cell.flower = Flower(position, flower_type, self.flowers_data)
+        # Set growth stage
+        for _ in range(growth_stage):
+            cell.flower.grow()
 
     def remove_flower(self, position):
         """
