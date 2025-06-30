@@ -66,7 +66,10 @@ class WorldGrid:
         self.min_pollution = min_pollution
         self.max_pollution = max_pollution
         self.pollution_increment = pollution_increment
-        self.num_seeds_returned = num_seeds_returned
+        if num_seeds_returned == -1:
+            self.num_seeds_returned = random.randint(0, 5)
+        else:
+            self.num_seeds_returned = num_seeds_returned
         self.flowers_data = flowers_data
         self.collisions_on = collisions_on
 
