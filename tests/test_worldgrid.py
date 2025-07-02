@@ -1,6 +1,7 @@
 import unittest
 import tempfile
 import random
+
 from ethicalgardeners.worldgrid import WorldGrid, CellType
 
 
@@ -33,7 +34,7 @@ class TestWorldGrid(unittest.TestCase):
                 {'position': (1, 1), 'type': 'OBSTACLE'}
             ],
             'agents': [
-                {'position': (2, 2), 'money': 50.0, 'seeds': [3, 3, 3]}
+                {'position': (2, 2), 'money': 50.0, 'seeds': {0:3, 1:3, 2:3}}
             ],
             'flowers': [
                 {'position': (3, 3), 'type': 0, 'growth_stage': 2}
@@ -62,16 +63,16 @@ class TestWorldGrid(unittest.TestCase):
         self.assertEqual(self.test_grid.grid[1][0].cell_type, CellType.GROUND)
 
         # Check flower placement and growth stage
-        self.assertTrue(self.test_grid.grid[1][1].have_flower())
+        self.assertTrue(self.test_grid.grid[1][1].has_flower())
         flower = self.test_grid.grid[1][1].flower
         self.assertEqual(flower.flower_type, 0)
         self.assertEqual(flower.current_growth_stage, 2)
 
         # Check agent placement
-        self.assertTrue(self.test_grid.grid[2][3].have_Agent())
-        agent = self.test_grid.grid[2][3].Agent
-        self.assertEqual(agent.money, 100.0)
-        self.assertEqual(agent.seeds, [5, 10, 3])
+        self.assertTrue(self.test_grid.grid[2][3].has_agent())
+        self.assertEqual(self.test_grid.grid[2][3].agent.money, 100.0)
+        self.assertEqual(self.test_grid.grid[2][3].agent.seeds,
+                         {0:5, 1:10, 2:3})
 
     def test_init_random(self):
         """
@@ -130,14 +131,16 @@ class TestWorldGrid(unittest.TestCase):
         self.assertEqual(self.test_grid.grid[1][1].cell_type, CellType.OBSTACLE)
 
         # Check agent
-        self.assertTrue(self.test_grid.grid[2][2].have_Agent())
-        agent = self.test_grid.grid[2][2].Agent
-        self.assertEqual(agent.position, (2, 2))
-        self.assertEqual(agent.money, 50.0)
-        self.assertEqual(agent.seeds, [3, 3, 3])
+        self.assertTrue(self.test_grid.grid[2][2].has_agent())
+        self.assertEqual(self.test_grid.grid[2][2].agent.position,
+                         (2, 2))
+        self.assertEqual(self.test_grid.grid[2][2].agent.money,
+                         50.0)
+        self.assertEqual(self.test_grid.grid[2][2].agent.seeds,
+                         {0:3, 1:3, 2:3})
 
         # Check flower
-        self.assertTrue(self.test_grid.grid[3][3].have_flower())
+        self.assertTrue(self.test_grid.grid[3][3].has_flower())
         flower = self.test_grid.grid[3][3].flower
         self.assertEqual(flower.position, (3, 3))
         self.assertEqual(flower.flower_type, 0)

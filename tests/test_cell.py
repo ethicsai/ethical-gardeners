@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import Mock
+import random
 from ethicalgardeners.worldgrid import Cell, CellType
 
 
@@ -55,6 +56,27 @@ class TestCell(unittest.TestCase):
         # Verify the pollution remains at the minimum
         self.assertEqual(self.cell.pollution, self.min_pollution)
 
+    def test_update_pollution_random_state(self):
+        """Test pollution update when the cell has a random previous pollution.
+
+        This test verifies that the cell's pollution decreases correctly when
+        it has a flower and a random initial pollution level.
+        """
+        initial_pollution = random.randint(self.min_pollution,
+                                           self.max_pollution)
+        self.cell.pollution = initial_pollution
+        self.cell.flower = self.mock_flower
+
+        self.cell.update_pollution(self.min_pollution, self.max_pollution)
+
+        # Verify the pollution has decreased by the correct amount
+        self.assertEqual(
+            self.cell.pollution,
+            max(min(self.max_pollution,
+                    initial_pollution - self.cell.flower.get_pollution_reduction()),
+                self.min_pollution)
+        )
+
     def test_update_pollution_without_flower_below_max(self):
         """Test pollution update when a cell has no flower and is below maximum.
 
@@ -87,3 +109,23 @@ class TestCell(unittest.TestCase):
 
         # Verify the pollution remains at the maximum
         self.assertEqual(self.cell.pollution, self.max_pollution)
+
+    def test_update_pollution_random_state_without_flower(self):
+        """Test pollution update when the cell has a random previous pollution.
+
+        This test verifies that the cell's pollution increases correctly when
+        it has no flower and a random initial pollution level.
+        """
+        initial_pollution = random.randint(self.min_pollution,
+                                           self.max_pollution)
+        self.cell.pollution = initial_pollution
+        self.cell.flower = None
+        self.cell.update_pollution(self.min_pollution, self.max_pollution)
+
+        # Verify the pollution has increased by the correct amount
+        self.assertEqual(
+            self.cell.pollution,
+            max(min(self.max_pollution,
+                    initial_pollution + self.pollution_increment),
+                self.min_pollution)
+        )
