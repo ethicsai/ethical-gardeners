@@ -15,7 +15,7 @@ This constant defines the default starting monetary wealth of agents when they
 are created.
 """
 
-STARTING_AGENT_SEEDS = [10, 10, 10]
+STARTING_AGENT_SEEDS = {0: 10, 1: 10, 2: 10}
 """
 Default initial seed counts for new agents.
 

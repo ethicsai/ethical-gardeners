@@ -5,7 +5,7 @@ This module defines the fundamental structures to represent the physical space
 where agents (gardeners) interact with the environment, including cells and flowers.
 """
 from enum import Enum
-from ethicalgardeners.action import Action
+from ethicalgardeners.agent import Agent
 from ethicalgardeners.defaultvalues import (FLOWERS_DATA, \
                                             POLLUTION_INCREMENT,
                                             STARTING_CELL_POLLUTION, \
@@ -32,17 +32,21 @@ class WorldGrid:
     Attributes:
         width (int): The width of the grid in cells.
         height (int): The height of the grid in cells.
-        min_pollution (float): Minimum allowed pollution level for any cell.
-        max_pollution (float): Maximum allowed pollution level for any cell.
+        min_pollution (float): The minimum level of pollution a cell can have
+            at any time. The cell pollution decreases over time when flowers
+            are planted, but cannot go lower than this minimum value.
+        max_pollution (float): The maximum level of pollution a cell can have
+            at any time. The cell pollution increases over time when no flowers
+            are planted, but cannot go higher than this maximum value.
         pollution_increment (float): Amount by which pollution increases in
-                                     empty cells.
+            empty cells.
         num_seeds_returned (int): Number of seeds returned when harvesting a flower.
         flowers_data (dict): Configuration data for different types of flowers.
         collisions_on (bool): Whether agents can occupy the same cell simultaneously.
         grid (list): 2D array of Cell objects representing the environment.
         agents (list): List of all Agent objects in the environment.
         flowers (dict): Dictionary of flower's name and color organized by
-                        flower type.
+            flower type.
     """
 
     def __init__(self, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT,
@@ -94,22 +98,21 @@ class WorldGrid:
         - Agent definitions: ID,money,seeds
         - Flower definitions: type,price,pollution_reduction
 
-        Example:
-        ```
-        10 10
-        G G G W W G G G G G
-        G F0_2 G G W G G G G G
-        G O G A0 W G G G G G
-        G G G G W G G G G G
-        W W W W W G G G G G
-        G G G G G G G G G G
-        G G G G G G G G G G
-        G G G G G G G G G G
-        G G G G G G G G G G
-        G G G G G G G G G G
-        0,100,5|10|3
-        0,2,1|2|3
-        ```
+        Example::
+
+            10 10
+            G G G W W G G G G G
+            G F0_2 G G G W G G G G G
+            G O G A0 W G G G G G
+            G G G G W G G G G G
+            W W W W W G G G G G
+            G G G G G G G G G G
+            G G G G G G G G G G
+            G G G G G G G G G G
+            G G G G G G G G G G
+            G G G G G G G G G G
+            0,100,5|10|3
+            0,2,1|2|3
 
         Args:
             file_path (str): Path to the file containing the grid configuration.
@@ -123,7 +126,7 @@ class WorldGrid:
         self.height = int(first_line[1])
 
         # Initialize the grid with empty cells
-        self.grid = [[Cell(CellType.GROUND) for _ in range(self.width)] for _ in
+        self.grid = [[None for _ in range(self.width)] for _ in
                      range(self.height)]
 
         #parse the grid
@@ -157,7 +160,8 @@ class WorldGrid:
             agent_id = int(agent_data[0])
             position = agents_to_create[agent_id]
             money = float(agent_data[1])
-            seeds = list(map(int, agent_data[2].split('|')))
+            seed_counts = list(map(int, agent_data[2].split('|')))
+            seeds = {i: count for i, count in enumerate(seed_counts)}
             agent = Agent(position, money, seeds)
             self.place_agent(agent)
 
@@ -175,7 +179,7 @@ class WorldGrid:
 
         # Place flowers with their growth stage
         for position, (flower_type, growth_stage) in flowers_to_create.items():
-            self.place_flower(position, flower_type, growth_stage)
+            self._place_flower(position, flower_type, growth_stage)
 
     def init_random(self, obstacles_ratio=DEFAULT_OBSTACLES_RATIO,
                     nb_agent=DEFAULT_NB_AGENTS):
@@ -233,11 +237,11 @@ class WorldGrid:
                     'width': int,  # Width of the grid
                     'height': int,  # Height of the grid
                     'cells': [  # List of special cells (other than GROUND)
-                        {'position': (row, col), 'type': CellType.OBSTACLE},
-                        {'position': (row, col), 'type': CellType.WALL},
+                        {'position': (row, col), 'type': 'OBSTACLE'},
+                        {'position': (row, col), 'type': 'WALL'},
                     ],
                     'agents': [  # List of agents to create (optional: money and seeds)
-                        {'position': (row, col), 'money': float, 'seeds': [int, int, ...]},
+                        {'position': (row, col), 'money': float, 'seeds': {0:int, 1:int, ...}},
                     ],
                     'flowers': [  # List of flowers to create (optional: growth stage)
                         {'position': (row, col), 'type': int, 'growth_stage': int},
@@ -276,7 +280,7 @@ class WorldGrid:
             flower_type = flower_info['type']
             growth_stage = flower_info.get('growth_stage', 0)
 
-            self.place_flower(position, flower_type, growth_stage)
+            self._place_flower(position, flower_type, growth_stage)
 
     def place_agent(self, agent):
         """
@@ -294,14 +298,14 @@ class WorldGrid:
 
         cell = self.get_cell(agent.position)
 
-        if cell.have_Agent() and not self.collisions_on:
+        if cell.has_agent() and not self.collisions_on:
             raise ValueError("Cannot place agent in an occupied cell without "
                              "collisions enabled.")
 
-        cell.Agent = agent
+        cell.agent = agent
         self.agents.append(agent)
 
-    def place_flower(self, position, flower_type, growth_stage=0):
+    def _place_flower(self, position, flower_type, growth_stage=0):
         """
         Place a flower in the grid at its specified position.
 
@@ -321,7 +325,7 @@ class WorldGrid:
 
         cell = self.get_cell(position)
 
-        if cell.have_flower():
+        if cell.has_flower():
             raise ValueError("Cannot place flower in a cell that already has "
                              "a flower.")
 
@@ -341,7 +345,7 @@ class WorldGrid:
             ValueError: If there is no flower at the specified position.
         """
         cell = self.get_cell(position)
-        if not cell.have_flower():
+        if not cell.has_flower():
             raise ValueError("Cannot remove flower from a cell that does not "
                              "have a flower.")
 
@@ -418,7 +422,7 @@ class Cell:
     Attributes:
         cell_type (CellType): Type of the cell (ground, obstacle, wall).
         flower (Flower): The flower present in this cell, if any.
-        Agent (Agent): The agent currently occupying this cell, if any.
+        agent (Agent): The agent currently occupying this cell, if any.
         pollution (float): Current pollution level of the cell.
         pollution_increment (float): Amount by which pollution increases each
                                      step if no flower in the cell.
@@ -439,7 +443,7 @@ class Cell:
         """
         self.cell_type = cell_type
         self.flower = None
-        self.Agent = None
+        self.agent = None
         self.pollution = pollution
         self.pollution_increment = pollution_increment
 
@@ -456,9 +460,9 @@ class Cell:
             min_pollution (float): Minimum pollution level allowed.
             max_pollution (float): Maximum pollution level allowed.
         """
-        if self.have_flower() and self.pollution > min_pollution:
+        if self.has_flower() and self.pollution > min_pollution:
             self.pollution -= self.flower.get_pollution_reduction()
-        elif not self.have_flower() and self.pollution < max_pollution:
+        elif not self.has_flower() and self.pollution < max_pollution:
             self.pollution += self.pollution_increment
 
     def is_ground(self):
@@ -470,7 +474,7 @@ class Cell:
         """
         return self.cell_type == CellType.GROUND
 
-    def have_flower(self):
+    def has_flower(self):
         """
         Check if the cell contains a flower.
 
@@ -479,14 +483,14 @@ class Cell:
         """
         return self.flower is not None
 
-    def have_Agent(self):
+    def has_agent(self):
         """
         Check if the cell is occupied by an agent.
 
         Returns:
             bool: True if the cell is occupied by an agent, False otherwise.
         """
-        return self.Agent is not None
+        return self.agent is not None
 
 
 class Flower:
@@ -516,9 +520,9 @@ class Flower:
         Args:
             position (tuple): The (x, y) coordinates where the flower is planted.
             flower_type (int): The type of flower to create.
-            flowers_data (dict): Configuration data for flower types, mapping
-                                 flower type IDs to their properties (price,
-                                 pollution reduction).
+            flowers_data (dict): Configuration data for flower types; a
+                dictionary mapping flower type IDs to a dictionary of
+                properties, containing ``keys`` and ``pollution_reduction``.
         """
         self.position = position
         self.flower_type = flower_type
@@ -531,8 +535,9 @@ class Flower:
         """
         Advance the flower to the next growth stage if not fully grown.
 
-        Each call increments the current_growth_stage by 1, up to the maximum
-        defined for this flower type.
+        By default, the flower grows 1 stage at each time step, up to the
+        maximum stage defined for this flower type. This method can be
+        overridden, to implement different strategies for growth.
         """
         if self.current_growth_stage < self.num_growth_stage:
             self.current_growth_stage += 1
@@ -558,118 +563,3 @@ class Flower:
             current stage.
         """
         return self.pollution_reduction[self.current_growth_stage]
-
-
-class Agent:
-    """
-    Represents a gardener agent in the environment.
-
-    Agents can move around the grid, plant and harvest flowers, manage seeds,
-    and accumulate money from harvesting flowers.
-
-    Attributes:
-        position (tuple): The (x, y) coordinates of the agent in the grid.
-        money (float): The agent's current monetary wealth.
-        seeds (dict): Dictionary mapping flower types to the number of seeds
-                      the agent has.
-        flowers_planted (dict): Counter of flowers planted by type.
-        flowers_harvested (dict): Counter of flowers harvested by type.
-    """
-    def __init__(self, position, money=STARTING_AGENT_MONEY,
-                 seeds=STARTING_AGENT_SEEDS):
-        """
-        Create a new agent.
-
-        Args:
-            position (tuple): The (x, y) coordinates where the agent starts.
-            money (float, optional): Initial amount of money the agent has.
-                                     Defaults to 0.
-            seeds (dict, optional): Dictionary mapping flower types to initial
-                                    seed counts. Defaults to 10 for each type.
-        """
-        self.position = position
-        self.money = money
-        self.seeds = seeds
-        self.flowers_planted = {i: 0 for i in self.seeds}
-        self.flowers_harvested = {i: 0 for i in self.seeds}
-
-    def move(self, direction):
-        """
-        Move the agent in the specified direction.
-
-        Updates the agent's position based on the direction action.
-
-        Args:
-            direction (:py:class:`.Action`): The direction to move (UP, DOWN,
-            LEFT, RIGHT).
-        """
-        if direction == Action.UP:
-            self.position = (self.position[0] - 1, self.position[1])
-        elif direction == Action.DOWN:
-            self.position = (self.position[0] + 1, self.position[1])
-        elif direction == Action.LEFT:
-            self.position = (self.position[0], self.position[1] - 1)
-        elif direction == Action.RIGHT:
-            self.position = (self.position[0], self.position[1] + 1)
-
-    def can_plant(self, flower_type):
-        """
-        Check if the agent has seeds available to plant a specific flower type.
-
-        Args:
-            flower_type (int): The type of flower to check seed availability for.
-
-        Returns:
-            bool: True if the agent has at least one seed of the specified type
-            of if seed count is -1 because this represenys infinite seeds.
-        """
-
-        if self.seeds[flower_type] == -1:
-            # If the seed count is -1, it represents infinite seeds
-            return True
-
-        return self.seeds[flower_type] > 0
-
-    def use_seed(self, flower_type):
-        """
-        Use a seed to plant a flower of the specified type.
-
-        Decrements the seed count for the flower type and increments the
-        flowers_planted counter. If seed count is -1, this represents infinite
-        seeds and the count is not decremented.
-
-        Args:
-            flower_type (int): The type of flower to plant.
-
-        Returns:
-            bool: True if the seed was successfully used, False if no seeds
-            available.
-        """
-        if self.can_plant(flower_type):
-            if self.seeds[flower_type] != -1:
-                # Only decrement if the seed count is not infinite
-                self.seeds[flower_type] -= 1
-
-            self.flowers_planted[flower_type] += 1
-            return True
-
-        return False
-
-    def add_money(self, amount):
-        """
-        Add money to the agent's wealth.
-
-        Args:
-            amount (float): The amount of money to add.
-        """
-        self.money += amount
-
-    def add_seed(self, flower_type, num_seeds):
-        """
-        Add seeds of a specific flower type to the agent's inventory.
-
-        Args:
-            flower_type (int): The type of flower seeds to add.
-            num_seeds (int): The number of seeds to add.
-        """
-        self.seeds[flower_type] += num_seeds
