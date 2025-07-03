@@ -18,7 +18,8 @@ class TestFlower(unittest.TestCase):
             1: {"price": 5, "pollution_reduction": [0, 0, 1, 3]},
             2: {"price": 2, "pollution_reduction": [1]}
         }
-        self.flower = Flower(self.position, self.flower_type, self.flowers_data)
+        self.flower = Flower(self.position, self.flower_type,
+                             self.flowers_data)
 
     def test_grow_from_initial_stage(self):
         """Test flower growth from its initial stage.
@@ -47,7 +48,8 @@ class TestFlower(unittest.TestCase):
         for i in range(grow_times):
             self.flower.grow()
             # Verify current stage is as expected
-            self.assertEqual(self.flower.current_growth_stage, initial_stage + i + 1)
+            self.assertEqual(self.flower.current_growth_stage,
+                             initial_stage + i + 1)
 
     def test_grow_until_final_stage(self):
         """Test flower growth until its final stage.
@@ -60,13 +62,15 @@ class TestFlower(unittest.TestCase):
             self.flower.grow()
 
         # Verify it's at the maximum allowed stage
-        self.assertEqual(self.flower.current_growth_stage, self.flower.num_growth_stage)
+        self.assertEqual(self.flower.current_growth_stage,
+                         self.flower.num_growth_stage)
 
         # Try to grow it one more time
         self.flower.grow()
 
         # Verify it doesn't grow beyond the maximum stage
-        self.assertEqual(self.flower.current_growth_stage, self.flower.num_growth_stage)
+        self.assertEqual(self.flower.current_growth_stage,
+                         self.flower.num_growth_stage)
 
         # Verify it's considered fully grown
         self.assertTrue(self.flower.is_grown())

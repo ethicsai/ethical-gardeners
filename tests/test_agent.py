@@ -9,7 +9,8 @@ class TestAgent(unittest.TestCase):
     def setUp(self):
         """Initialize necessary objects before tests.
 
-        This method sets up a test environment with an agent at position (5, 5).
+        This method sets up a test environment with an agent at position
+        (5, 5).
         """
         self.initial_position = (5, 5)
         self.agent = Agent(position=self.initial_position)
@@ -23,7 +24,8 @@ class TestAgent(unittest.TestCase):
         self.agent.move(Action.UP)
 
         # Expected position after moving up: row decreases by 1
-        expected_position = (self.initial_position[0] - 1, self.initial_position[1])
+        expected_position = (self.initial_position[0] - 1,
+                             self.initial_position[1])
 
         # Verify the position was correctly updated
         self.assertEqual(self.agent.position, expected_position)
@@ -37,7 +39,8 @@ class TestAgent(unittest.TestCase):
         self.agent.move(Action.DOWN)
 
         # Expected position after moving down: row increases by 1
-        expected_position = (self.initial_position[0] + 1, self.initial_position[1])
+        expected_position = (self.initial_position[0] + 1,
+                             self.initial_position[1])
 
         # Verify the position was correctly updated
         self.assertEqual(self.agent.position, expected_position)
@@ -51,7 +54,8 @@ class TestAgent(unittest.TestCase):
         self.agent.move(Action.LEFT)
 
         # Expected position after moving left: column decreases by 1
-        expected_position = (self.initial_position[0], self.initial_position[1] - 1)
+        expected_position = (self.initial_position[0],
+                             self.initial_position[1] - 1)
 
         # Verify the position was correctly updated
         self.assertEqual(self.agent.position, expected_position)
@@ -65,7 +69,8 @@ class TestAgent(unittest.TestCase):
         self.agent.move(Action.RIGHT)
 
         # Expected position after moving right: column increases by 1
-        expected_position = (self.initial_position[0], self.initial_position[1] + 1)
+        expected_position = (self.initial_position[0],
+                             self.initial_position[1] + 1)
 
         # Verify the position was correctly updated
         self.assertEqual(self.agent.position, expected_position)
@@ -103,7 +108,6 @@ class TestAgent(unittest.TestCase):
         # Verify that the agent's money has been updated correctly
         self.assertEqual(self.agent.money, initial_money + amount_to_add)
 
-
     def test_add_seed(self):
         """Test adding seeds to agent's inventory.
 
@@ -122,7 +126,6 @@ class TestAgent(unittest.TestCase):
         self.assertEqual(self.agent.seeds[flower_type],
                          initial_seeds + seeds_to_add)
 
-
     def test_can_plant_with_seeds(self):
         """Test if agent can plant when seeds are available.
 
@@ -133,7 +136,6 @@ class TestAgent(unittest.TestCase):
         self.agent.seeds[flower_type] = 5
         self.assertTrue(self.agent.can_plant(flower_type))
 
-
     def test_can_plant_with_infinite_seeds(self):
         """Test if agent can plant with infinite seeds.
 
@@ -143,7 +145,6 @@ class TestAgent(unittest.TestCase):
         flower_type = 0
         self.agent.seeds[flower_type] = -1
         self.assertTrue(self.agent.can_plant(flower_type))
-
 
     def test_can_plant_without_seeds(self):
         """Test if agent cannot plant when no seeds are available.

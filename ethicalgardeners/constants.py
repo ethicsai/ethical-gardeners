@@ -27,12 +27,13 @@ DEFAULT_GRID_CONFIG = {
 """
 Default configuration dictionary for grid initialization from code.
 
-This dictionary provides a standard configuration when initializing a grid using 
-the :py:meth:`.WorldGrid.init_from_code` method without specifying a custom 
-configuration. It defines:
+This dictionary provides a standard configuration when initializing a grid
+using the :py:meth:`.WorldGrid.init_from_code` method without specifying a
+custom configuration. It defines:
 
 - Grid dimensions
-- GridWorld properties (pollution levels, seed return policy, collision behavior)
+- GridWorld properties (pollution levels, seed return policy, collision
+    behavior)
 - Flower data (prices and pollution reduction values)
 - Special cell positions and types
 - Initial agent positions and properties

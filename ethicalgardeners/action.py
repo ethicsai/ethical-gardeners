@@ -10,7 +10,8 @@ from enum import Enum, auto
 
 class Action(Enum):
     """
-    Enum representing the possible actions an agent can take in the environment.
+    Enum representing the possible actions an agent can take in the
+    environment.
 
     These actions allow agents to move around the grid, interact with flowers,
     or simply wait.

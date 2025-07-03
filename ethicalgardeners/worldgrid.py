@@ -36,7 +36,8 @@ import numpy as np
 
 class WorldGrid:
     """
-    Represents the physical grid world environment for the Ethical Gardeners simulation.
+    Represents the physical grid world environment for the Ethical Gardeners
+    simulation.
 
     The WorldGrid manages a 2D grid of cells. It handles the flowers and agents
     and manages their placement within the environment. The grid can be
@@ -53,9 +54,11 @@ class WorldGrid:
             are planted, but cannot go higher than this maximum value.
         pollution_increment (float): Amount by which pollution increases in
             empty cells.
-        num_seeds_returned (int): Number of seeds returned when harvesting a flower.
+        num_seeds_returned (int): Number of seeds returned when harvesting a
+            flower.
         flowers_data (dict): Configuration data for different types of flowers.
-        collisions_on (bool): Whether agents can occupy the same cell simultaneously.
+        collisions_on (bool): Whether agents can occupy the same cell
+            simultaneously.
         grid (list): 2D array of Cell objects representing the environment.
         agents (list): List of all Agent objects in the environment.
         flowers (dict): Dictionary of flower's name and color organized by
@@ -64,8 +67,8 @@ class WorldGrid:
 
     def __init__(self, width=10, height=10, min_pollution=0, max_pollution=100,
                  pollution_increment=1, num_seeds_returned=1,
-                 collisions_on=True, flowers_data= None, random_generator=None,
-                 grid = None, agents=None, flowers=None):
+                 collisions_on=True, flowers_data=None, random_generator=None,
+                 grid=None, agents=None, flowers=None):
         """
         Create a new grid world environment.
 
@@ -171,7 +174,8 @@ class WorldGrid:
             0,2,1|2|3
 
         Args:
-            file_path (str): Path to the file containing the grid configuration.
+            file_path (str): Path to the file containing the grid
+                configuration.
         """
         with open(file_path, 'r') as f:
             lines = f.readlines()
@@ -183,9 +187,9 @@ class WorldGrid:
 
         # Initialize the grid with empty cells
         grid = [[None for _ in range(width)] for _ in
-                     range(height)]
+                range(height)]
 
-        #parse the grid
+        # parse the grid
         agents_to_create = {}
         flowers_to_create = {}
 
@@ -260,19 +264,19 @@ class WorldGrid:
             nb_agent (int, optional): Number of agents to place on the grid
 
         Raises:
-            ValueError: If there are not enough valid positions for the specified
-                number of agents after placing obstacles.
+            ValueError: If there are not enough valid positions for the
+                specified number of agents after placing obstacles.
         """
         random_generator = random_generator if (
                 random_generator is not None) else np.random.RandomState()
 
         # Initialize grid with ground cells
         grid = [[Cell(CellType.GROUND) for _ in range(width)] for _ in
-                     range(height)]
+                range(height)]
 
         # Create a list of all possible positions
         valid_positions = [(i, j) for i in range(height) for j in
-                         range(width)]
+                           range(width)]
 
         # Place obstacles randomly
         indices = np.arange(len(valid_positions))  # choice needs indices
@@ -308,7 +312,8 @@ class WorldGrid:
     @classmethod
     def init_from_code(cls, grid_config=None):
         """
-        Initialize the grid directly from code using a configuration dictionary.
+        Initialize the grid directly from code using a configuration
+        dictionary.
 
         This method allows programmatic grid initialization for testing and
         debugging without having to create external files.
@@ -326,16 +331,23 @@ class WorldGrid:
                     'min_pollution': float,  # Minimum pollution level
                     'max_pollution': float,  # Maximum pollution level
                     'pollution_increment': float,  # Pollution increment
-                    'num_seeds_returned': int,  # Number of seeds returned when harvesting a flower
-                    'collisions_on': bool,  # Whether agents can occupy the same cell
+                    'num_seeds_returned': int,  # Number of seeds returned when
+                                                # harvesting a flower
+                    'collisions_on': bool,  # Whether agents can occupy the
+                                            # same cell
                     'flowers_data': {  # Optional: custom flower data
-                        int: {'price': float, 'pollution_reduction': [float, ...]},
+                        int: {'price': float,
+                        'pollution_reduction': [float, ...]},
                     },
-                    'agents': [  # List of agents to create (optional: money and seeds)
-                        {'position': (row, col), 'money': float, 'seeds': {0:int, 1:int, ...}},
+                    'agents': [  # List of agents to create
+                                 # (optional: money and seeds)
+                        {'position': (row, col), 'money': float,
+                        'seeds': {0:int, 1:int, ...}},
                     ],
-                    'flowers': [  # List of flowers to create (optional: growth stage)
-                        {'position': (row, col), 'type': int, 'growth_stage': int},
+                    'flowers': [  # List of flowers to create
+                                  # (optional: growth stage)
+                        {'position': (row, col), 'type': int,
+                        'growth_stage': int},
                     ]
                 }
         """
@@ -372,7 +384,7 @@ class WorldGrid:
 
         # Initialize grid with ground cells
         grid = [[Cell(CellType.GROUND) for _ in range(width)] for _ in
-                     range(height)]
+                range(height)]
 
         # Place special cells (obstacles, walls) based on the configuration
         for cell_info in grid_config.get('cells', []):
@@ -405,12 +417,12 @@ class WorldGrid:
             flowers.append((position, flower_type, growth_stage))
 
         return cls(width=width, height=height, min_pollution=min_pollution,
-                    max_pollution=max_pollution,
-                    pollution_increment=pollution_increment,
-                    num_seeds_returned=num_seeds_returned,
-                    collisions_on=collisions_on,
-                    flowers_data=flowers_data, grid=grid,
-                    agents=agents, flowers=flowers)
+                   max_pollution=max_pollution,
+                   pollution_increment=pollution_increment,
+                   num_seeds_returned=num_seeds_returned,
+                   collisions_on=collisions_on,
+                   flowers_data=flowers_data, grid=grid,
+                   agents=agents, flowers=flowers)
 
     def place_agent(self, agent):
         """
@@ -537,7 +549,8 @@ class CellType(Enum):
 
     Attributes:
         GROUND: A normal cell where agents can walk, plant and harvest flowers.
-        OBSTACLE: An impassable cell that agents cannot traverse or interact with.
+        OBSTACLE: An impassable cell that agents cannot traverse or interact
+            with.
         WALL: A boundary cell that defines the limits of the environment.
     """
     GROUND = 0
@@ -620,7 +633,8 @@ class Cell:
         Check if a flower can be planted in this cell.
 
         Returns:
-            bool: True if a flower can be planted in this cell, False otherwise.
+            bool: True if a flower can be planted in this cell, False
+                otherwise.
         """
         return self.cell_type == CellType.GROUND and not self.has_flower()
 
@@ -668,7 +682,8 @@ class Flower:
         Create a new flower.
 
         Args:
-            position (tuple): The (x, y) coordinates where the flower is planted.
+            position (tuple): The (x, y) coordinates where the flower is
+                planted.
             flower_type (int): The type of flower to create.
             flowers_data (dict): Configuration data for flower types;
                 a dictionary mapping flower type IDs to a dictionary of
@@ -677,7 +692,8 @@ class Flower:
         self.position = position
         self.flower_type = flower_type
         self.price = flowers_data[flower_type]['price']
-        self.pollution_reduction = flowers_data[flower_type]["pollution_reduction"]
+        self.pollution_reduction = (
+            flowers_data)[flower_type]["pollution_reduction"]
         self.num_growth_stage = len(self.pollution_reduction)
         self.current_growth_stage = 0
 

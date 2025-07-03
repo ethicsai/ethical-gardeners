@@ -61,7 +61,8 @@ class Agent:
         Check if the agent has seeds available to plant a specific flower type.
 
         Args:
-            flower_type (int): The type of flower to check seed availability for.
+            flower_type (int): The type of flower to check seed availability
+                for.
 
         Returns:
             bool: True if the agent has at least one seed of the specified type
