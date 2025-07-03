@@ -73,12 +73,14 @@ class TestCell(unittest.TestCase):
         self.assertEqual(
             self.cell.pollution,
             max(min(self.max_pollution,
-                    initial_pollution - self.cell.flower.get_pollution_reduction()),
+                    initial_pollution -
+                    self.cell.flower.get_pollution_reduction()),
                 self.min_pollution)
         )
 
     def test_update_pollution_without_flower_below_max(self):
-        """Test pollution update when a cell has no flower and is below maximum.
+        """Test pollution update when a cell has no flower and is below
+        maximum.
 
         This test verifies that the cell's pollution increases by the correct
         amount when it does not contain a flower and its pollution level is
@@ -91,7 +93,8 @@ class TestCell(unittest.TestCase):
         self.cell.update_pollution(self.min_pollution, self.max_pollution)
 
         # Verify the pollution has increased by the correct amount
-        self.assertEqual(self.cell.pollution, initial_pollution + self.pollution_increment)
+        self.assertEqual(self.cell.pollution,
+                         initial_pollution + self.pollution_increment)
 
     def test_update_pollution_without_flower_at_max(self):
         """Test pollution update when a cell has no flower and is at maximum

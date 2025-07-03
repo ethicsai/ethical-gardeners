@@ -40,4 +40,3 @@ This package is designed to be used with reinforcement learning frameworks
 such as Gymnasium or pettingzoo and follows the API conventions of these
 frameworks.
 """
-from .worldgrid import WorldGrid
