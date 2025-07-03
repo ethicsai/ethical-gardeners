@@ -1,6 +1,4 @@
 from ethicalgardeners.action import Action
-from ethicalgardeners.defaultvalues import STARTING_AGENT_MONEY, \
-    STARTING_AGENT_SEEDS
 
 
 class Agent:
@@ -14,25 +12,27 @@ class Agent:
         position (tuple): The (x, y) coordinates of the agent in the grid.
         money (float): The agent's current monetary wealth.
         seeds (dict): Dictionary mapping flower types to the number of seeds
-                      the agent has.
+            the agent has.
         flowers_planted (dict): Counter of flowers planted by type.
         flowers_harvested (dict): Counter of flowers harvested by type.
     """
-    def __init__(self, position, money=STARTING_AGENT_MONEY,
-                 seeds=STARTING_AGENT_SEEDS):
+    def __init__(self, position, money=0.0, seeds=None):
         """
         Create a new agent.
 
         Args:
             position (tuple): The (x, y) coordinates where the agent starts.
             money (float, optional): Initial amount of money the agent has.
-                                     Defaults to 0.
+                Defaults to 0.
             seeds (dict, optional): Dictionary mapping flower types to initial
-                                    seed counts. Defaults to 10 for each type.
+                seed counts. Defaults to 10 for each type.
         """
         self.position = position
         self.money = money
-        self.seeds = dict(seeds)
+        if seeds is None:
+            self.seeds = {0: 10, 1: 10, 2: 10}
+        else:
+            self.seeds = seeds
         self.flowers_planted = {i: 0 for i in self.seeds}
         self.flowers_harvested = {i: 0 for i in self.seeds}
         self.turns_without_income = 0
@@ -45,7 +45,7 @@ class Agent:
 
         Args:
             direction (:py:class:`.Action`): The direction to move (UP, DOWN,
-            LEFT, RIGHT).
+                LEFT, RIGHT).
         """
         if direction == Action.UP:
             self.position = (self.position[0] - 1, self.position[1])
@@ -65,7 +65,7 @@ class Agent:
 
         Returns:
             bool: True if the agent has at least one seed of the specified type
-            of if seed count is -1 because this represenys infinite seeds.
+                of if seed count is -1 because this represenys infinite seeds.
         """
 
         if self.seeds[flower_type] == -1:
@@ -87,7 +87,7 @@ class Agent:
 
         Returns:
             bool: True if the seed was successfully used, False if no seeds
-            available.
+                available.
         """
         if self.can_plant(flower_type):
             if self.seeds[flower_type] != -1:

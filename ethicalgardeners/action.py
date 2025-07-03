@@ -2,9 +2,10 @@
 Actions module defines the possible actions agents can take in the environment.
 
 This module contains the Action enumeration that represents all possible
-actions a gardener agent can perform in the environment.
+actions a gardener agent can perform in the environment. These actions are
+handled by the :py:class:`.ActionHandler` class.
 """
-from enum import Enum
+from enum import Enum, auto
 
 
 class Action(Enum):
@@ -23,10 +24,10 @@ class Action(Enum):
         HARVEST: Harvest a flower from the current cell.
         WAIT: Do nothing for this turn.
     """
-    UP = 0
-    DOWN = 1
-    LEFT = 2
-    RIGHT = 3
-    PLANT = 4
-    HARVEST = 5
-    WAIT = 6
+    UP = auto()
+    DOWN = auto()
+    LEFT = auto()
+    RIGHT = auto()
+    PLANT = auto()
+    HARVEST = auto()
+    WAIT = auto()
