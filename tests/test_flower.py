@@ -13,7 +13,12 @@ class TestFlower(unittest.TestCase):
         """
         self.position = (5, 5)
         self.flower_type = 0
-        self.flower = Flower(self.position, self.flower_type)
+        self.flowers_data = {
+            0: {"price": 10, "pollution_reduction": [0, 0, 0, 0, 5]},
+            1: {"price": 5, "pollution_reduction": [0, 0, 1, 3]},
+            2: {"price": 2, "pollution_reduction": [1]}
+        }
+        self.flower = Flower(self.position, self.flower_type, self.flowers_data)
 
     def test_grow_from_initial_stage(self):
         """Test flower growth from its initial stage.
