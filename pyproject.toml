@@ -1,0 +1,71 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ethical-gardeners"
+version = "0.0.1"
+authors = [
+    { name = "Rémy Chaput", email = "rchaput.pro@gmail.com" },
+    { name = "Enzo Dos Anjos" }
+]
+description = "A RL environment for learning ethically-aligned behaviours"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.20.0",
+    "gymnasium>=0.26.0",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+keywords = [
+    "Reinforcement Learning",
+    "Machine Ethics",
+    "OpenAI Gym",
+    "Gym",
+    "Gymnasium",
+    "Multi-Agent System",
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "flake8>=4.0.0",
+]
+docs = [
+    "sphinx>=5.0.0",
+    "furo>=2022.11.15",
+    "sphinx-copybutton>=0.5.0",
+    "sphinx-multiversion>=0.2.4",
+]
+viz = [
+    "pygame>=2.0.0",
+    "opencv>=4.5.0",
+]
+metrics = [
+]
+
+[project.urls]
+"Source code" = "https://github.com/ethicsai/ethicalgardeners"
+"Bug Tracker" = "https://github.com/ethicsai/ethicalgardeners/issues"
+"Documentation" = "https://ethicsai.github.io/ethical-gardeners/"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ethicalgardeners"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
