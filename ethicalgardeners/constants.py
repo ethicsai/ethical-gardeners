@@ -39,3 +39,17 @@ custom configuration. It defines:
 - Initial agent positions and properties
 - Initial flower placements (empty by default)
 """
+
+MAX_PENALTY_TURNS = 10
+"""
+Maximum number of turns used to normalize the well-being penalty.
+
+This constant defines the maximum number of turns without income after which
+an agent receives the maximum well-being penalty (-1.0). It is used in the
+`computeWellbeingReward` function to normalize the penalty given to agents
+who haven't earned money, using the formula:
+`-min(agent.turns_without_income / MAX_PENALTY_TURNS, 1.0)`
+
+The higher this value, the more lenient the system is towards agents that go
+for longer periods without harvesting and selling flowers.
+"""
