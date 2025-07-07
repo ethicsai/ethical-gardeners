@@ -5,22 +5,25 @@ Ethical Gardeners.
 This module defines the fundamental structures of the simulated environment
 where agents (gardeners) interact with the world. The environment consists of:
 
-1. A 2D grid of cells (:py:class:`.Cell`) - Each cell represents a physical
-    location that can be of different types (:py:class:`.CellType`). The cells
-    have a pollution level that evolves over time, depending on whether they
-    contain flowers or not.
+1. A 2D grid of cells (:py:class:`Cell`) - Each cell represents a physical
+location that can be of different types (:py:class:`CellType`). The cells
+have a pollution level that evolves over time, depending on whether they
+contain flowers or not.
 
-2. Flowers (:py:class:`.Flower`) - Plants that agents can grow in ground cells:
-   - Different types with unique growth patterns and properties
-   - Progress through growth stages over time
-   - Reduce pollution in their cell based on type and growth stage
-   - Can be harvested for monetary value when fully grown
-   - Return seeds when harvested that can be used to plant more flowers
+2. Flowers (:py:class:`Flower`) - Plants that agents can grow in ground cells:
 
-3. Agents - Gardeners that move through and interact with the environment:
-   - Can move between cells
-   - Plant flowers using seeds from their inventory
-   - Harvest fully grown flowers for monetary value
+* Different types with unique growth patterns and properties
+* Progress through growth stages over time
+* Reduce pollution in their cell based on type and growth stage
+* Can be harvested for monetary value when fully grown
+* Return seeds when harvested that can be used to plant more flowers
+
+3. Agents (:py:class:`.Agent`) - Gardeners that move through and interact with
+the environment:
+
+* Can move between cells
+* Plant flowers using seeds from their inventory
+* Harvest fully grown flowers for monetary value
 
 The WorldGrid provides methods to initialize the environment (from file,
 randomly, or programmatically), place and manage agents and flowers,
@@ -90,7 +93,7 @@ class WorldGrid:
                 types of flowers.
             collisions_on (bool, optional): Whether agents can occupy the same
                 cell simultaneously.
-            random_generator (random.Random, optional): Custom random generator
+            random_generator (np.random, optional): Custom random generator
                 instance for reproducibility. If None, uses the default random
             grid (list, optional): 2D array of Cell objects representing the
                 environment. If None, initializes an empty grid.
@@ -152,6 +155,7 @@ class WorldGrid:
         Initialize the grid from a file.
 
         The file format supports:
+
         - First line: width height
         - Grid representation: G (ground), O (obstacle), W (wall),
           FX_Y (ground with flower type X at growth stage Y),
@@ -258,7 +262,7 @@ class WorldGrid:
         Args:
             width (int, optional): Width of the grid
             height (int, optional): Height of the grid
-            random_generator (random.Random, optional): Custom random generator
+            random_generator (np.random, optional): Custom random generator
                 instance for reproducibility. If None, uses the default random
                 generator.
             obstacles_ratio (float, optional): Proportion of cells that will be
@@ -322,36 +326,39 @@ class WorldGrid:
 
         Args:
             grid_config (dict, optional): Configuration dictionary with the
-            following structure:
-                {
-                    'width': int,  # Width of the grid
-                    'height': int,  # Height of the grid
-                    'cells': [  # List of special cells (other than GROUND)
-                        {'position': (row, col), 'type': 'OBSTACLE'},
-                        {'position': (row, col), 'type': 'WALL'},
-                    ],
-                    'min_pollution': float,  # Minimum pollution level
-                    'max_pollution': float,  # Maximum pollution level
-                    'pollution_increment': float,  # Pollution increment
-                    'num_seeds_returned': int,  # Number of seeds returned when
-                                                # harvesting a flower
-                    'collisions_on': bool,  # Whether agents can occupy the
-                                            # same cell
-                    'flowers_data': {  # Optional: custom flower data
-                        int: {'price': float,
-                        'pollution_reduction': [float, ...]},
-                    },
-                    'agents': [  # List of agents to create
-                                 # (optional: money and seeds)
-                        {'position': (row, col), 'money': float,
-                        'seeds': {0:int, 1:int, ...}},
-                    ],
-                    'flowers': [  # List of flowers to create
-                                  # (optional: growth stage)
-                        {'position': (row, col), 'type': int,
-                        'growth_stage': int},
-                    ]
-                }
+                following structure:
+
+                .. code-block:: python
+
+                    {
+                        'width': int,  # Width of the grid
+                        'height': int,  # Height of the grid
+                        'cells': [  # List of special cells (other than GROUND)
+                            {'position': (row, col), 'type': 'OBSTACLE'},
+                            {'position': (row, col), 'type': 'WALL'},
+                        ],
+                        'min_pollution': float,  # Minimum pollution level
+                        'max_pollution': float,  # Maximum pollution level
+                        'pollution_increment': float,  # Pollution increment
+                        'num_seeds_returned': int,  # Number of seeds returned
+                                                    # when harvesting a flower
+                        'collisions_on': bool,  # Whether agents can occupy the
+                                                # same cell
+                        'flowers_data': {  # Optional: custom flower data
+                            int: {'price': float,
+                            'pollution_reduction': [float, ...]},
+                        },
+                        'agents': [  # List of agents to create (optional:
+                                     # money and seeds)
+                            {'position': (row, col), 'money': float,
+                            'seeds': {0:int, 1:int, ...}},
+                        ],
+                        'flowers': [  # List of flowers to create (optional:
+                                      # growth stage)
+                            {'position': (row, col), 'type': int,
+                            'growth_stage': int},
+                        ]
+                    }
         """
         if grid_config is None:
             grid_config = {}
@@ -454,7 +461,7 @@ class WorldGrid:
         Place a flower in the grid at its specified position.
 
         Args:
-            position: (tuple): The (x, y) coordinates where the flower will be
+            position (tuple): The (x, y) coordinates where the flower will be
                 planted.
             flower_type (int): The type of flower to plant.
             growth_stage (int, optional): The initial growth stage of the
@@ -537,7 +544,7 @@ class WorldGrid:
         A move is valid if:
         1. The new position is valid.
         2. If collisions are enabled, the new position is not occupied by
-              another agent.
+            another agent.
 
         Args:
             new_position (tuple): The new (x, y) coordinates of the agent after
@@ -585,8 +592,8 @@ class Cell:
     """
     Represents a single cell in the grid world.
 
-    It can be of different types (:py:class:`.CellType`). Some types can
-    contain a flower (:py:class:`.Flower`) and an agent (:py:class:`.Agent`).
+    It can be of different types (:py:class:`CellType`). Some types can
+    contain a flower (:py:class:`Flower`) and an agent (:py:class:`.Agent`).
     It has a pollution level that evolves over time to a speed defined by
     :py:attr:`pollution_increment`.
 
@@ -600,8 +607,7 @@ class Cell:
 
     """
 
-    def __init__(self, cell_type, pollution=50,
-                 pollution_increment=1):
+    def __init__(self, cell_type, pollution=50, pollution_increment=1):
         """
         Create a new cell.
 

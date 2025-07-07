@@ -1,4 +1,5 @@
-"""Constant values used throughout the Ethical Gardeners simulation."""
+"""Constant values used throughout the Ethical Gardeners simulation.
+"""
 DEFAULT_GRID_CONFIG = {
     'width': 10,
     'height': 10,
