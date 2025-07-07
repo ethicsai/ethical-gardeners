@@ -8,14 +8,19 @@ promote ethical behaviors in reinforcement learning algorithms.
 
 Main Components:
 -----------------
-- :py:class:`.WorldGrid`: The simulation grid representing the physical
-    environment
-- :py:class:`.Agent`: The gardeners who act in the environment
-- :py:class:`.Flower`: Flowers that can be planted, grow, and reduce pollution
-- :py:class:`.Action`: Enumeration of possible actions (movement, planting,
-    harvesting)
-- :py:class:`.ActionHandler`: Handles the execution of agent actions in the
-    environment
+
+* :py:class:`.WorldGrid`: The simulation grid representing the physical
+  environment.
+* :py:class:`.Agent`: The gardeners who act in the environment.
+* :py:class:`.Flower`: Flowers that can be planted, grow, and reduce pollution.
+* :py:class:`.Action`: Enumeration of possible actions (movement, planting,
+  harvesting).
+* :py:class:`.ActionHandler`: Handles the execution of agent actions in the
+  environment.
+* :py:class:`.RewardFunctions`: Defines reward functions for agents based on
+  their actions in the environment.
+* :py:class:`.ObservationStrategy`: Interface for defining how agents observe
+  the environment.
 
 Usage Examples:
 -----------------

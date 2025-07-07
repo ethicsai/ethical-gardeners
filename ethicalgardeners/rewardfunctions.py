@@ -2,14 +2,16 @@
 Module containing reward functions for the Ethical Gardeners environment.
 
 This module defines some reward function used to compute rewards for agents:
-- `ComputeEcologyReward`: Computes the ecological reward based on the agent's
-    action, specifically for planting and harvesting flowers.
-- `ComputeWellbeingReward`: Computes the well-being reward based on the agent's
-    action, specifically for selling flowers and give a penalty for not
-    earning money.
-- `ComputeBiodiversityReward`: Computes the biodiversity reward based on the
-    number of different flower types planted by all the agents and how much
-    the agents helps increase diversity.
+
+* :py:meth:`~RewardFunctions.computeEcologyReward`: Computes the ecological
+  reward based on the agent's action, specifically for planting and
+  harvesting flowers.
+* :py:meth:`~RewardFunctions.computeWellbeingReward`: Computes the well-being
+  reward based on the agent's action, specifically for selling flowers and
+  giving a penalty for not earning money.
+* :py:meth:`~RewardFunctions.computeBiodiversityReward`: Computes the
+  biodiversity reward based on the number of different flower types planted
+  by all the agents and how much the agent helps increase diversity.
 """
 from math import log
 
@@ -30,7 +32,8 @@ class RewardFunctions:
     """
 
     def __init__(self):
-        """Create the RewardFunctions object."""
+        """Create the RewardFunctions object.
+        """
         pass
 
     def computeReward(self, grid_world_prev, grid_world, agent, action):
@@ -42,14 +45,11 @@ class RewardFunctions:
         rewards, normalized to a range between -1 and 1.
 
         Args:
-            grid_world_prev (:class:`~ethicalgardeners.worldgrid.GridWorld`):
-                The grid world environment before the action.
-            grid_world (:class:`~ethicalgardeners.worldgrid.GridWorld`): The
-                grid world environment.
-            agent (:class:`~ethicalgardeners.agent.Agent`): The agent
-                performing the action.
-            action (:class:`~ethicalgardeners.worldgrid.Action`): The action
-                performed.
+            grid_world_prev (:py:class:`.WorldGrid`): The grid world
+                environment before the action.
+            grid_world (:py:class:`.WorldGrid`): The grid world environment.
+            agent (:py:class:`.Agent`): The agent performing the action.
+            action (:py:class:`.Action`): The action performed.
 
         Returns:
             dict: A dictionary containing the ecological, well-being, and
@@ -83,14 +83,11 @@ class RewardFunctions:
 
 
         Args:
-            grid_world_prev (:class:`~ethicalgardeners.worldgrid.GridWorld`):
-                The grid world environment before the action.
-            grid_world (:class:`~ethicalgardeners.worldgrid.GridWorld`): The
-                grid world environment.
-            agent (:class:`~ethicalgardeners.agent.Agent`): The agent
-                performing the action.
-            action (:class:`~ethicalgardeners.worldgrid.Action`): The action
-                performed.
+            grid_world_prev (:py:class:`.WorldGrid`): The grid world
+                environment before the action.
+            grid_world (:py:class:`.WorldGrid`): The grid world environment.
+            agent (:py:class:`.Agent`): The agent performing the action.
+            action (:py:class:`.Action`): The action performed.
 
         Returns:
             float: The normalized ecological reward (between -1 and 1) for
@@ -176,14 +173,11 @@ class RewardFunctions:
         without income, normalized to a maximum penalty.
 
         Args:
-            grid_world_prev (:class:`~ethicalgardeners.worldgrid.GridWorld`):
-                The grid world environment before the action.
-            grid_world (:class:`~ethicalgardeners.worldgrid.GridWorld`): The
-                grid world environment.
-            agent (:class:`~ethicalgardeners.agent.Agent`): The agent
-                performing the action.
-            action (:class:`~ethicalgardeners.worldgrid.Action`): The action
-                performed.
+            grid_world_prev (:py:class:`.WorldGrid`): The grid world
+                environment before the action.
+            grid_world (:py:class:`.WorldGrid`): The grid world environment.
+            agent (:py:class:`.Agent`): The agent performing the action.
+            action (:py:class:`.Action`): The action performed.
         Returns:
             float: The normalized well-being reward (between -1 and 1).
         """
@@ -212,7 +206,7 @@ class RewardFunctions:
             # Calculate penalty for not earning money
             return -min(agent.turns_without_income / MAX_PENALTY_TURNS, 1.0)
 
-    def computeBiodiversityReward(self, prev_grid_world, grid_world, agent,
+    def computeBiodiversityReward(self, grid_world_prev, grid_world, agent,
                                   action):
         """
         Compute the biodiversity reward for an agent based on its action in the
@@ -224,14 +218,11 @@ class RewardFunctions:
         the impact.
 
         Args:
-            prev_grid_world (:class:`~ethicalgardeners.worldgrid.GridWorld`):
-                The grid world environment before the action.
-            grid_world (:class:`~ethicalgardeners.worldgrid.GridWorld`): The
-                grid world environment.
-            agent (:class:`~ethicalgardeners.agent.Agent`): The agent
-                performing the action.
-            action (:class:`~ethicalgardeners.worldgrid.Action`): The action
-                performed.
+            grid_world_prev (:py:class:`.WorldGrid`): The grid world
+                environment before the action.
+            grid_world (:py:class:`.WorldGrid`): The grid world environment.
+            agent (:py:class:`.Agent`): The agent performing the action.
+            action (:py:class:`.Action`): The action performed.
 
         Returns:
             float: The normalized biodiversity reward (between -1 and 1).
