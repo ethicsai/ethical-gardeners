@@ -11,7 +11,8 @@ authors = [
 ]
 description = "A RL environment for learning ethically-aligned behaviours"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICEN[CS]E.*"]
 requires-python = ">=3.9"
 dependencies = [
     "numpy>=1.20.0",
