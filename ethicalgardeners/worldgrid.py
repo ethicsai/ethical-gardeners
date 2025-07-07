@@ -27,11 +27,11 @@ randomly, or programmatically), place and manage agents and flowers,
 update environmental conditions, and validate agent actions.
 """
 from enum import Enum
-from ethicalgardeners.agent import Agent
-
-from ethicalgardeners.constants import DEFAULT_GRID_CONFIG
 
 import numpy as np
+
+from ethicalgardeners.agent import Agent
+from ethicalgardeners.constants import DEFAULT_GRID_CONFIG
 
 
 class WorldGrid:
@@ -92,6 +92,8 @@ class WorldGrid:
                 cell simultaneously.
             random_generator (random.Random, optional): Custom random generator
                 instance for reproducibility. If None, uses the default random
+            grid (list, optional): 2D array of Cell objects representing the
+                environment. If None, initializes an empty grid.
             agents (list, optional): List of Agent objects to place in the
                 grid.
             flowers (list, optional): List of tuples representing flowers to
@@ -471,10 +473,8 @@ class WorldGrid:
             raise ValueError("Cannot place flower in a cell that already has "
                              "a flower.")
 
-        cell.flower = Flower(position, flower_type, self.flowers_data)
-        # Set growth stage
-        for _ in range(growth_stage):
-            cell.flower.grow()
+        cell.flower = Flower(position, flower_type, self.flowers_data,
+                             growth_stage)
 
         # Add the flower to the flowers dictionary
         self.flowers[flower_type].append(cell.flower)
@@ -677,7 +677,7 @@ class Flower:
             starting at 0.
     """
 
-    def __init__(self, position, flower_type, flowers_data):
+    def __init__(self, position, flower_type, flowers_data, growth_stage=0):
         """
         Create a new flower.
 
@@ -688,6 +688,8 @@ class Flower:
             flowers_data (dict): Configuration data for flower types;
                 a dictionary mapping flower type IDs to a dictionary of
                 properties, containing ``keys`` and ``pollution_reduction``.
+            growth_stage (int, optional): The number of growth stages for
+                this flower. Defaults to 0 (the initial stage).
         """
         self.position = position
         self.flower_type = flower_type
@@ -695,7 +697,7 @@ class Flower:
         self.pollution_reduction = (
             flowers_data)[flower_type]["pollution_reduction"]
         self.num_growth_stage = len(self.pollution_reduction)
-        self.current_growth_stage = 0
+        self.current_growth_stage = growth_stage
 
     def grow(self):
         """
