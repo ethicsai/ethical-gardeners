@@ -15,15 +15,15 @@ information agents can access about the environment. It provides:
 Observations are formatted as numpy arrays compatible with Gymnasium
 environments.
 
-Custom observation strategies can be implemented by extending the 
+Custom observation strategies can be implemented by extending the
 ObservationStrategy class and implementing the required methods.
 """
 from abc import ABC, abstractmethod
-import gymnasium as gym
 from gymnasium.spaces import Box
 import numpy as np
 
 from ethicalgardeners.worldgrid import CellType
+
 
 class ObservationStrategy(ABC):
     """
@@ -74,6 +74,7 @@ class ObservationStrategy(ABC):
             numpy.ndarray: The observation for the specified agent.
         """
         pass
+
 
 class TotalObservation(ObservationStrategy):
     """
@@ -131,6 +132,7 @@ class TotalObservation(ObservationStrategy):
                 obs[x, y] = grid_world.grid[x, y]
 
         return obs
+
 
 class PartialObservation(ObservationStrategy):
     """

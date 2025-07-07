@@ -40,12 +40,12 @@ class TestRewardFunctions(unittest.TestCase):
         # Patch individual reward methods with predefined return values
         with patch.object(self.reward_functions,
                           'computeEcologyReward',
-                           return_value=0.5) as mock_ecology:
+                          return_value=0.5) as mock_ecology:
             with patch.object(self.reward_functions,
                               'computeWellbeingReward',
                               return_value=0.3) as mock_wellbeing:
                 with patch.object(self.reward_functions,
-                        'computeBiodiversityReward',
+                                  'computeBiodiversityReward',
                                   return_value=0.2) as mock_biodiversity:
                     result = self.reward_functions.computeReward(
                         self.mock_grid_world_prev,
