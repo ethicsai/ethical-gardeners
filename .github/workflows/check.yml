@@ -58,9 +58,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
       # Install the source code dependencies
       - name: Install dependencies
+        # Pip now supports installing from pyproject.toml directly.
+        # We want the `dev` extra dependencies (pytest and flake8).
+        # We want to install this project as a "development installation"
+        # (https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs)
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install --editable '.[dev]'
       # Run automatic tests using unittest as the orchestrator
       - name: Test with unittest
         run: python -m unittest tests/test_*.py
