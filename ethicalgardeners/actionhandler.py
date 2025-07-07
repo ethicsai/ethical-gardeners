@@ -1,7 +1,8 @@
 """
 Handles the execution of agent actions in the Ethical Gardeners simulation.
 """
-from ethicalgardeners.action  import Action
+from ethicalgardeners.action import Action
+
 
 class ActionHandler:
     """

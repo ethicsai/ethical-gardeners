@@ -62,12 +62,13 @@ class RewardFunctions:
                                                        grid_world, agent,
                                                        action)
         biodiversity_reward = self.computeBiodiversityReward(grid_world_prev,
-                                                        grid_world, agent,
-                                                        action)
+                                                             grid_world, agent,
+                                                             action)
 
         return {'ecology': ecology_reward, 'wellbeing': wellbeing_reward,
-                'biodiversity': biodiversity_reward, 'total': (
-                ecology_reward + wellbeing_reward + biodiversity_reward) / 3}
+                'biodiversity': biodiversity_reward,
+                'total': (ecology_reward + wellbeing_reward +
+                          biodiversity_reward) / 3}
 
     def computeEcologyReward(self, grid_world_prev, grid_world, agent, action):
         """
