@@ -530,6 +530,29 @@ class WorldGrid:
         else:
             return False
 
+    def valid_move(self, new_position):
+        """
+        Checks if an agent can move to a new position based on the action.
+
+        A move is valid if:
+        1. The new position is valid.
+        2. If collisions are enabled, the new position is not occupied by
+              another agent.
+
+        Args:
+            new_position (tuple): The new (x, y) coordinates of the agent after
+                moving.
+
+        Returns:
+            bool: True if the move is valid, False otherwise.
+        """
+        # Check if the cell is occupied by another agent
+        if self.collisions_on:
+            if self.get_cell(new_position).has_agent():
+                return False
+
+        return self.valid_position(new_position)
+
     def get_cell(self, position):
         """
         Gets the cell at the specified position.
