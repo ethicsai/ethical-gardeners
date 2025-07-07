@@ -14,6 +14,8 @@ Main Components:
 - :py:class:`.Flower`: Flowers that can be planted, grow, and reduce pollution
 - :py:class:`.Action`: Enumeration of possible actions (movement, planting,
     harvesting)
+- :py:class:`.ActionHandler`: Handles the execution of agent actions in the
+    environment
 
 Usage Examples:
 -----------------
