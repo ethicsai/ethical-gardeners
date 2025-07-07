@@ -36,16 +36,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # Install the (source code, not docs) dependencies (requirements.txt)
-      # This is required to build the docs, as we import the source code
-      - name: Install source code dependencies
+      # Install the source code and docs dependencies.
+      # Source deps are required to build the docs, as we import the source code
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      # Install the docs dependencies
-      - name: Install docs dependencies
-        run: |
-          if [ -f docs/requirements.txt ]; then pip install -r docs/requirements.txt; fi
+          pip install --editable '.[docs]'
       # Build the HTML docs; we need to `cd` first to correctly import packages
       - name: Build docs with Sphinx
         run: cd docs && make -e multiversion
