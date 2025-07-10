@@ -3,8 +3,8 @@ from unittest.mock import Mock, patch
 
 from math import log
 
+from ethicalgardeners.action import create_action_enum
 from ethicalgardeners.rewardfunctions import RewardFunctions
-from ethicalgardeners.action import Action
 from ethicalgardeners.constants import MAX_PENALTY_TURNS
 
 
@@ -24,7 +24,9 @@ class TestRewardFunctions(unittest.TestCase):
         Creates a RewardFunctions instance and mocks for grid_world, agent,
         and actions.
         """
-        self.reward_functions = RewardFunctions()
+        self.action_enum = create_action_enum(3)
+
+        self.reward_functions = RewardFunctions(self.action_enum)
         self.mock_grid_world_prev = Mock()
         self.mock_grid_world = Mock()
         self.mock_agent = Mock()
@@ -39,19 +41,19 @@ class TestRewardFunctions(unittest.TestCase):
         """
         # Patch individual reward methods with predefined return values
         with patch.object(self.reward_functions,
-                          'computeEcologyReward',
+                          'compute_ecology_reward',
                           return_value=0.5) as mock_ecology:
             with patch.object(self.reward_functions,
-                              'computeWellbeingReward',
+                              'compute_wellbeing_reward',
                               return_value=0.3) as mock_wellbeing:
                 with patch.object(self.reward_functions,
-                                  'computeBiodiversityReward',
+                                  'compute_biodiversity_reward',
                                   return_value=0.2) as mock_biodiversity:
-                    result = self.reward_functions.computeReward(
+                    result = self.reward_functions.compute_reward(
                         self.mock_grid_world_prev,
                         self.mock_grid_world,
                         self.mock_agent,
-                        Action.PLANT
+                        self.action_enum.PLANT_TYPE_0
                     )
 
                     # Verify that individual reward methods were called
@@ -97,11 +99,11 @@ class TestRewardFunctions(unittest.TestCase):
         self.mock_grid_world.flower_data = {0: flower_data}
 
         # Test the method
-        result = self.reward_functions.computeEcologyReward(
+        result = self.reward_functions.compute_ecology_reward(
             self.mock_grid_world_prev,
             self.mock_grid_world,
             self.mock_agent,
-            Action.PLANT
+            self.action_enum.PLANT_TYPE_0
         )
 
         # Calculate expected reward manually
@@ -141,11 +143,11 @@ class TestRewardFunctions(unittest.TestCase):
         self.mock_grid_world.flower_data = {0: flower_data}
 
         # Test the method
-        result = self.reward_functions.computeEcologyReward(
+        result = self.reward_functions.compute_ecology_reward(
             self.mock_grid_world_prev,
             self.mock_grid_world,
             self.mock_agent,
-            Action.HARVEST
+            self.action_enum.HARVEST
         )
 
         # Calculate expected reward manually
@@ -183,11 +185,11 @@ class TestRewardFunctions(unittest.TestCase):
         }
 
         # Test the method
-        result = self.reward_functions.computeWellbeingReward(
+        result = self.reward_functions.compute_wellbeing_reward(
             self.mock_grid_world_prev,
             self.mock_grid_world,
             self.mock_agent,
-            Action.HARVEST
+            self.action_enum.HARVEST
         )
 
         # Verify result
@@ -204,11 +206,11 @@ class TestRewardFunctions(unittest.TestCase):
         self.mock_agent.turns_without_income = 5
 
         # Test the method with a non-harvest action
-        result = self.reward_functions.computeWellbeingReward(
+        result = self.reward_functions.compute_wellbeing_reward(
             self.mock_grid_world_prev,
             self.mock_grid_world,
             self.mock_agent,
-            Action.WAIT
+            self.action_enum.WAIT
         )
 
         # Verify penalty calculation
@@ -257,11 +259,11 @@ class TestRewardFunctions(unittest.TestCase):
         self.mock_grid_world.agents = [agent1, agent2]
 
         # Test biodiversity reward for planting a type 2 flower
-        result = self.reward_functions.computeBiodiversityReward(
+        result = self.reward_functions.compute_biodiversity_reward(
             self.mock_grid_world_prev,
             self.mock_grid_world,
             self.mock_agent,
-            Action.PLANT
+            self.action_enum.PLANT_TYPE_2
         )
 
         # Calculate expected Shannon-Wiener biodiversity indices manually
@@ -329,11 +331,11 @@ class TestRewardFunctions(unittest.TestCase):
         self.mock_grid_world.agents = [agent1, agent2]
 
         # Test biodiversity reward for planting a type 0 flower
-        result = self.reward_functions.computeBiodiversityReward(
+        result = self.reward_functions.compute_biodiversity_reward(
             self.mock_grid_world_prev,
             self.mock_grid_world,
             self.mock_agent,
-            Action.PLANT
+            self.action_enum.PLANT_TYPE_0
         )
 
         # Calculate expected Shannon-Wiener biodiversity indices manually

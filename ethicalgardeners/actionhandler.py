@@ -1,7 +1,12 @@
 """
 Handles the execution of agent actions in the Ethical Gardeners simulation.
 """
-from ethicalgardeners.action import Action
+import warnings
+
+import numpy as np
+
+from ethicalgardeners.action import get_non_planting_actions, \
+    get_planting_action_for_type
 
 
 class ActionHandler:
@@ -11,19 +16,30 @@ class ActionHandler:
     The ActionHandler mediates between agents and the world grid, ensuring that
     actions are only executed when valid. It manages movement validation,
     flower planting and harvesting, and simple waiting actions.
+
+    Attributes:
+        grid_world (:py:class:`.WorldGrid`): The grid world environment where
+            actions will be executed.
+        action_enum (enum): An enumeration of possible actions (UP, DOWN,
+            LEFT, RIGHT, HARVEST, WAIT, PLANT_TYPE_i). Created dynamically
+            based on the number of flower types available.
     """
 
-    def __init__(self, grid_world):
+    def __init__(self, grid_world, action_enum):
         """
         Create the ActionHandler with a reference to the grid world.
 
         Args:
             grid_world (:py:class:`.WorldGrid`): The grid world environment
                 where actions will be executed.
+            action_enum (enum): An enumeration of possible actions (UP, DOWN,
+                LEFT, RIGHT, HARVEST, WAIT, PLANT_TYPE_i). Created dynamically
+                based on the number of flower types available.
         """
         self.grid_world = grid_world
+        self.action_enum = action_enum  # Dynamically created Action enum
 
-    def handle_action(self, agent, action, flower_type=None):
+    def handle_action(self, agent, action):
         """
         Process an agent's action and execute it in the grid world.
 
@@ -32,19 +48,21 @@ class ActionHandler:
 
         Args:
             agent (:py:class:`.Agent`): The agent performing the action.
-            action (:py:class:`.Action`): The action to perform (UP, DOWN,
-                LEFT, RIGHT, PLANT, HARVEST, or WAIT).
-            flower_type (int, optional): The type of flower to plant when the
-                action is PLANT. Required only for PLANT actions.
+            action (:py:attr:`action_enum`): The action to perform (UP,
+                DOWN, LEFT, RIGHT, HARVEST, WAIT or PLANT_TYPE_i). PLANT_TYPE_i
+                plants a flower of type i at the agent's current position.
         """
-        if action in [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]:
+        if action in [self.action_enum.UP, self.action_enum.DOWN,
+                      self.action_enum.LEFT, self.action_enum.RIGHT]:
             self.move_agent(agent, action)
-        elif action == Action.PLANT:
-            self.plant_flower(agent, flower_type)
-        elif action == Action.HARVEST:
+        elif action == self.action_enum.HARVEST:
             self.harvest_flower(agent)
-        elif action == Action.WAIT:
+        elif action == self.action_enum.WAIT:
             self.wait(agent)
+        else:  # Assume action is a PLANT_TYPE_i action
+            self.plant_flower(agent, action.value -
+                              len(get_non_planting_actions(self.action_enum))
+                              )  # Extract flower type from action
 
     def move_agent(self, agent, action):
         """
@@ -52,27 +70,25 @@ class ActionHandler:
 
         Args:
             agent (:py:class:`.Agent`): The agent to move.
-            action (:py:class:`.Action`): The direction to move (UP, DOWN,
-                LEFT, RIGHT).
+            action (:py:attr:`action_enum`): The direction to move (UP,
+                DOWN, LEFT, RIGHT).
         """
         # Compute the new position based on the action
-        new_position = agent.position
-        if action == Action.UP:
-            new_position = (agent.position[0] - 1, agent.position[1])
-        elif action == Action.DOWN:
-            new_position = (agent.position[0] + 1, agent.position[1])
-        elif action == Action.LEFT:
-            new_position = (agent.position[0], agent.position[1] - 1)
-        elif action == Action.RIGHT:
-            new_position = (agent.position[0], agent.position[1] + 1)
+        new_position = self.compute_new_position(agent.position, action)
 
         if self.grid_world.valid_move(new_position):
-            agent.move(action)
+            agent.move(new_position)
 
             self.grid_world.get_cell(agent.position).agent = None
             self.grid_world.get_cell(new_position).agent = agent
 
-            agent.turns_without_income += 1
+        else:
+            warnings.warn(
+                f"Invalid move attempted by {agent} towards {new_position}. "
+                f"The agent remains at its current position."
+            )
+
+        agent.turns_without_income += 1
 
     def plant_flower(self, agent, flower_type):
         """
@@ -83,20 +99,20 @@ class ActionHandler:
         Args:
             agent (:py:class:`.Agent`): The agent planting the flower.
             flower_type (int): The type of flower to plant.
-
-        Raises:
-            ValueError: If the agent does not have seeds of the specified type
-                or if the current cell already contains a flower.
         """
         if (agent.can_plant(flower_type) and
                 self.grid_world.get_cell(agent.position).can_plant_on()):
             agent.use_seed(flower_type)
 
             self.grid_world.place_flower(agent.position, flower_type)
-
-            agent.turns_without_income += 1
         else:
-            raise ValueError("Agent cannot plant this flower type.")
+            warnings.warn(
+                f"Invalid plant attempted by {agent} with flower_type "
+                f"{flower_type}. The agent cannot plant any flower of this "
+                f"type. The action is ignored."
+            )
+
+        agent.turns_without_income += 1
 
     def harvest_flower(self, agent):
         """
@@ -107,29 +123,35 @@ class ActionHandler:
 
         Args:
             agent (:py:class:`.Agent`): The agent harvesting the flower.
-
-        Raises:
-            ValueError: If there is no flower at the agent's position or if the
-                flower is not fully grown.
         """
         flower = self.grid_world.get_cell(agent.position).flower
-        if flower and flower.is_grown():
-            self.grid_world.remove_flower(agent.position)
+        if flower:
+            if flower.is_grown():
+                self.grid_world.remove_flower(agent.position)
 
-            if self.grid_world.num_seeds_returned is not None:
-                if self.grid_world.num_seeds_returned == -3:
-                    num_seeds_returned = (
-                        self.grid_world.random_generator.randint(1, 5))
-                else:
-                    num_seeds_returned = self.grid_world.num_seeds_returned
-                agent.add_seed(flower.flower_type, num_seeds_returned)
+                if self.grid_world.num_seeds_returned is not None:
+                    if self.grid_world.num_seeds_returned == -3:
+                        num_seeds_returned = (
+                            self.grid_world.random_generator.randint(1, 5))
+                    else:
+                        num_seeds_returned = self.grid_world.num_seeds_returned
+                    agent.add_seed(flower.flower_type, num_seeds_returned)
 
-            agent.add_money(
-                self.grid_world.flowers_data[flower.flower_type]['price'])
+                agent.add_money(
+                    self.grid_world.flowers_data[flower.flower_type]['price'])
+            else:
+                warnings.warn(
+                    f"Invalid harvest attempted by {agent} with flower "
+                    f"{flower}. The flower is not fully grown. The action"
+                    f" is ignored."
+                )
         else:
-            raise ValueError(
-                "No flower to harvest at this position or flower cannot be"
-                " harvested.")
+            warnings.warn(
+                f"Invalid harvest attempted by {agent} with flower "
+                f"{flower}. There is no flower at {agent.position}. The action"
+                f" is ignored."
+            )
+            agent.turns_without_income += 1
 
     def wait(self, agent):
         """
@@ -139,3 +161,65 @@ class ActionHandler:
         any other action in the current time step.
         """
         agent.turns_without_income += 1
+
+    def update_action_mask(self, agent):
+        """
+        Update the action mask for all agents based on the current state of
+        the grid world.
+
+        This method checks the validity of each action for each agent and
+        updates their action masks accordingly.
+
+        Args:
+            agent (:py:class:`.Agent`): The agent for which to update the
+                action mask.
+        """
+        mask = np.ones(len(self.action_enum), dtype=bool)
+        if not self.grid_world.valid_move(self.compute_new_position(
+                agent.position, self.action_enum.UP)):
+            mask[self.action_enum.UP.value] = 0
+        if not self.grid_world.valid_move(self.compute_new_position(
+                agent.position, self.action_enum.DOWN)):
+            mask[self.action_enum.DOWN.value] = 0
+        if not self.grid_world.valid_move(self.compute_new_position(
+                agent.position, self.action_enum.LEFT)):
+            mask[self.action_enum.LEFT.value] = 0
+        if not self.grid_world.valid_move(self.compute_new_position(
+                agent.position, self.action_enum.RIGHT)):
+            mask[self.action_enum.RIGHT.value] = 0
+        if not self.grid_world.get_cell(agent.position).flower or \
+                not self.grid_world.get_cell(agent.position).flower.is_grown():
+            mask[self.action_enum.HARVEST.value] = 0
+
+        # Check planting actions for each flower type
+        can_plant_on_cell = self.grid_world.get_cell(
+            agent.position).can_plant_on()
+        for i in range(len(agent.seeds)):
+            plant_action = get_planting_action_for_type(self.action_enum, i)
+            if not agent.can_plant(i) or not can_plant_on_cell:
+                mask[plant_action.value] = 0
+
+        agent.action_mask = mask
+
+    def compute_new_position(self, position, action):
+        """
+        Compute the new position based on the current position and action.
+
+        Args:
+            position (tuple): The current (x, y) coordinates of the agent.
+            action (:py:attr:`action_enum`): The action to perform
+                (UP, DOWN, LEFT, RIGHT).
+
+        Returns:
+            tuple: The new (x, y) coordinates after applying the action.
+        """
+        if action == self.action_enum.UP:
+            return (position[0] - 1, position[1])
+        elif action == self.action_enum.DOWN:
+            return (position[0] + 1, position[1])
+        elif action == self.action_enum.LEFT:
+            return (position[0], position[1] - 1)
+        elif action == self.action_enum.RIGHT:
+            return (position[0], position[1] + 1)
+        else:
+            return position

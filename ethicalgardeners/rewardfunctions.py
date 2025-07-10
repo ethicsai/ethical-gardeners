@@ -3,19 +3,19 @@ Module containing reward functions for the Ethical Gardeners environment.
 
 This module defines some reward function used to compute rewards for agents:
 
-* :py:meth:`~RewardFunctions.computeEcologyReward`: Computes the ecological
+* :py:meth:`~RewardFunctions.compute_ecology_reward`: Computes the ecological
   reward based on the agent's action, specifically for planting and
   harvesting flowers.
-* :py:meth:`~RewardFunctions.computeWellbeingReward`: Computes the well-being
+* :py:meth:`~RewardFunctions.compute_wellbeing_reward`: Computes the well-being
   reward based on the agent's action, specifically for selling flowers and
   giving a penalty for not earning money.
-* :py:meth:`~RewardFunctions.computeBiodiversityReward`: Computes the
+* :py:meth:`~RewardFunctions.compute_biodiversity_reward`: Computes the
   biodiversity reward based on the number of different flower types planted
   by all the agents and how much the agent helps increase diversity.
 """
 from math import log
 
-from ethicalgardeners.action import Action
+from ethicalgardeners.action import get_non_planting_actions
 from ethicalgardeners.constants import MAX_PENALTY_TURNS
 
 
@@ -29,14 +29,24 @@ class RewardFunctions:
     biodiversity.
 
     Each reward component is normalized to a range between -1 and 1.
+
+    Attributes:
+        action_enum (enum): An enumeration of possible actions (UP, DOWN,
+            LEFT, RIGHT, HARVEST, WAIT, PLANT_TYPE_i). Created dynamically
+            based on the number of flower types available.
     """
 
-    def __init__(self):
+    def __init__(self, action_enum):
         """Create the RewardFunctions object.
-        """
-        pass
 
-    def computeReward(self, grid_world_prev, grid_world, agent, action):
+        Args:
+            action_enum (enum): An enumeration of possible actions (UP, DOWN,
+                LEFT, RIGHT, HARVEST, WAIT, PLANT_TYPE_i). Created dynamically
+                based on the number of flower types available.
+        """
+        self.action_enum = action_enum
+
+    def compute_reward(self, grid_world_prev, grid_world, agent, action):
         """
         Compute the mono-objective reward for an agent based on its action in
         the environment.
@@ -49,28 +59,30 @@ class RewardFunctions:
                 environment before the action.
             grid_world (:py:class:`.WorldGrid`): The grid world environment.
             agent (:py:class:`.Agent`): The agent performing the action.
-            action (:py:class:`.Action`): The action performed.
+            action (:py:attr:`action_enum`): The action performed.
 
         Returns:
             dict: A dictionary containing the ecological, well-being, and
             biodiversity rewards, as well as the total reward averaged across
             these components.
         """
-        ecology_reward = self.computeEcologyReward(grid_world_prev, grid_world,
-                                                   agent, action)
-        wellbeing_reward = self.computeWellbeingReward(grid_world_prev,
-                                                       grid_world, agent,
-                                                       action)
-        biodiversity_reward = self.computeBiodiversityReward(grid_world_prev,
-                                                             grid_world, agent,
-                                                             action)
+        ecology_reward = self.compute_ecology_reward(grid_world_prev,
+                                                     grid_world, agent, action)
+        wellbeing_reward = self.compute_wellbeing_reward(grid_world_prev,
+                                                         grid_world, agent,
+                                                         action)
+        biodiversity_reward = self.compute_biodiversity_reward(grid_world_prev,
+                                                               grid_world,
+                                                               agent, action)
 
-        return {'ecology': ecology_reward, 'wellbeing': wellbeing_reward,
+        return {'ecology': ecology_reward,
+                'wellbeing': wellbeing_reward,
                 'biodiversity': biodiversity_reward,
                 'total': (ecology_reward + wellbeing_reward +
                           biodiversity_reward) / 3}
 
-    def computeEcologyReward(self, grid_world_prev, grid_world, agent, action):
+    def compute_ecology_reward(self, grid_world_prev, grid_world, agent,
+                               action):
         """
         Compute the ecological reward for an agent based on its action in the
         environment.
@@ -88,14 +100,14 @@ class RewardFunctions:
                 environment before the action.
             grid_world (:py:class:`.WorldGrid`): The grid world environment.
             agent (:py:class:`.Agent`): The agent performing the action.
-            action (:py:class:`.Action`): The action performed.
+            action (:py:attr:`action_enum`): The action performed.
 
         Returns:
             float: The normalized ecological reward (between -1 and 1) for
             planting and harvesting actions, or 0 for other actions.
         """
         # Reward computed only for planting and harvesting actions
-        if action == Action.PLANT:
+        if action not in get_non_planting_actions(self.action_enum):
             p_max = grid_world.max_pollution
             p_min = grid_world.min_pollution
             position = agent.position
@@ -125,7 +137,7 @@ class RewardFunctions:
                 return r_plant / r_max
             else:
                 return 0.0
-        elif action == Action.HARVEST:
+        elif action == self.action_enum.HARVEST:
             p_max = grid_world.max_pollution
             p_min = grid_world.min_pollution
             position = agent.position
@@ -162,8 +174,8 @@ class RewardFunctions:
         else:
             return 0.0
 
-    def computeWellbeingReward(self, grid_world_prev, grid_world, agent,
-                               action):
+    def compute_wellbeing_reward(self, grid_world_prev, grid_world, agent,
+                                 action):
         """
         Compute the well-being reward for an agent based on its action in the
         environment.
@@ -178,12 +190,12 @@ class RewardFunctions:
                 environment before the action.
             grid_world (:py:class:`.WorldGrid`): The grid world environment.
             agent (:py:class:`.Agent`): The agent performing the action.
-            action (:py:class:`.Action`): The action performed.
+            action (:py:attr:`action_enum`): The action performed.
         Returns:
             float: The normalized well-being reward (between -1 and 1).
         """
         # Reward computed only for harvesting actions
-        if action == Action.HARVEST:
+        if action == self.action_enum.HARVEST:
             position = agent.position
             prev_cell = grid_world_prev.get_cell(position)
             cell = grid_world.get_cell(position)
@@ -207,8 +219,8 @@ class RewardFunctions:
             # Calculate penalty for not earning money
             return -min(agent.turns_without_income / MAX_PENALTY_TURNS, 1.0)
 
-    def computeBiodiversityReward(self, grid_world_prev, grid_world, agent,
-                                  action):
+    def compute_biodiversity_reward(self, grid_world_prev, grid_world, agent,
+                                    action):
         """
         Compute the biodiversity reward for an agent based on its action in the
         environment.
@@ -223,12 +235,12 @@ class RewardFunctions:
                 environment before the action.
             grid_world (:py:class:`.WorldGrid`): The grid world environment.
             agent (:py:class:`.Agent`): The agent performing the action.
-            action (:py:class:`.Action`): The action performed.
+            action (:py:attr:`action_enum`): The action performed.
 
         Returns:
             float: The normalized biodiversity reward (between -1 and 1).
         """
-        if action != Action.PLANT:
+        if action in get_non_planting_actions(self.action_enum):
             return 0.0
 
         position = agent.position

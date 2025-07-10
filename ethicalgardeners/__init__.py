@@ -13,8 +13,8 @@ Main Components:
   environment.
 * :py:class:`.Agent`: The gardeners who act in the environment.
 * :py:class:`.Flower`: Flowers that can be planted, grow, and reduce pollution.
-* :py:class:`.Action`: Enumeration of possible actions (movement, planting,
-  harvesting).
+* :py:func:`.create_action_enum`: Function that dynamically create an
+  enumeration of actions for agents based on the number of flower types.
 * :py:class:`.ActionHandler`: Handles the execution of agent actions in the
   environment.
 * :py:class:`.RewardFunctions`: Defines reward functions for agents based on

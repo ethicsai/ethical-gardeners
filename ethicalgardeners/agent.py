@@ -1,6 +1,3 @@
-from ethicalgardeners.action import Action
-
-
 class Agent:
     """
     Represents a gardener agent in the environment.
@@ -15,6 +12,9 @@ class Agent:
             the agent has.
         flowers_planted (dict): Counter of flowers planted by type.
         flowers_harvested (dict): Counter of flowers harvested by type.
+        turns_without_income (int): Number of turns the agent has not earned
+            money.
+        action_mask (list): Action mask indicating valid actions for the agent.
     """
     def __init__(self, position, money=0.0, seeds=None):
         """
@@ -36,25 +36,19 @@ class Agent:
         self.flowers_planted = {i: 0 for i in self.seeds}
         self.flowers_harvested = {i: 0 for i in self.seeds}
         self.turns_without_income = 0
+        self.action_mask = None  # Action mask to indicate valid actions
 
-    def move(self, direction):
+    def move(self, new_position):
         """
         Move the agent in the specified direction.
 
         Updates the agent's position based on the direction action.
 
         Args:
-            direction (:py:class:`.Action`): The direction to move (UP, DOWN,
-                LEFT, RIGHT).
+            new_position (tuple): The (x, y) coordinates of the agent in the
+            grid.
         """
-        if direction == Action.UP:
-            self.position = (self.position[0] - 1, self.position[1])
-        elif direction == Action.DOWN:
-            self.position = (self.position[0] + 1, self.position[1])
-        elif direction == Action.LEFT:
-            self.position = (self.position[0], self.position[1] - 1)
-        elif direction == Action.RIGHT:
-            self.position = (self.position[0], self.position[1] + 1)
+        self.position = new_position
 
     def can_plant(self, flower_type):
         """
