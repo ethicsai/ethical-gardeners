@@ -54,3 +54,20 @@ who haven't earned money, using the formula:
 The higher this value, the more lenient the system is towards agents that go
 for longer periods without harvesting and selling flowers.
 """
+
+FEATURES_PER_CELL = 7
+"""
+Number of features per cell in the grid.
+
+This constant defines the number of features that each cell in the grid
+contains. It is used in the observation strategies to determine the shape of
+the observation space. Each cell's features include:
+
+* Cell type (normalized)
+* Pollution level (normalized)
+* Flower presence and type (normalized)
+* Flower growth stage (normalized)
+* Agent presence (normalized)
+* Agent X position (normalized)
+* Agent Y position (normalized)
+"""

@@ -9,8 +9,8 @@ information agents can access about the environment. It provides:
 
 2. Two concrete implementations:
 
-   - Complete grid visibility (TotalObservation)
-   - Limited visibility range (PartialObservation)
+   - Complete grid visibility (:py:class:`TotalObservation`)
+   - Limited visibility range (:py:class:`PartialObservation`)
 
 Observations are formatted as numpy arrays compatible with Gymnasium
 environments.
@@ -22,6 +22,7 @@ from abc import ABC, abstractmethod
 from gymnasium.spaces import Box
 import numpy as np
 
+from ethicalgardeners.constants import FEATURES_PER_CELL
 from ethicalgardeners.worldgrid import CellType
 
 
@@ -35,7 +36,8 @@ class ObservationStrategy(ABC):
 
     Attributes:
         agents (dict): A dictionary mapping the gymnasium IDs of the agents
-            that will receive observations to their objects.
+            that will receive observations to their instances
+            (e.g. Dict[AgentID, Agent])
     """
 
     def __init__(self, agents):
@@ -44,7 +46,8 @@ class ObservationStrategy(ABC):
 
         Args:
             agents (dict): A dictionary mapping the gymnasium IDs of the agents
-                that will receive observations to their objects.
+                that will receive observations to their instances
+                (e.g. Dict[AgentID, Agent])
         """
         self.agents = agents
 
@@ -83,6 +86,16 @@ class TotalObservation(ObservationStrategy):
     This strategy gives agents perfect information about the state of the
     environment, including all cells, agents, and flowers.
 
+    Each cell in the grid is represented as a vector of features:
+
+    * Cell type (normalized)
+    * Pollution level (normalized)
+    * Flower presence and type (normalized)
+    * Flower growth stage (normalized)
+    * Agent presence (normalized)
+    * Agent X position (normalized)
+    * Agent Y position (normalized)
+
     Attributes:
         observation_shape (tuple): The dimensions of the observation
             (width, height).
@@ -96,23 +109,27 @@ class TotalObservation(ObservationStrategy):
             grid_world (:py:class:`.WorldGrid`): The grid world environment to
                 observe.
             agents (dict): A dictionary mapping the gymnasium IDs of the agents
-                that will receive observations to their objects.
+                that will receive observations to their instances
+                (e.g. Dict[AgentID, Agent])
         """
         super().__init__(agents)
-        self.observation_shape = (grid_world.width, grid_world.height)
+        self.observation_shape = (grid_world.width, grid_world.height,
+                                  FEATURES_PER_CELL)
 
     def observation_space(self, agent):
         """
-        Define the observation space as a Box with the full grid dimensions.
+        Define the observation space as a Box with the full grid and
+        features per cell.
 
         Args:
             agent (str): The agent for which to define the observation space.
 
         Returns:
-            gym.spaces.Box: A box space with dimensions matching the full grid.
+            gym.spaces.Box: A box space with dimensions
+                (width, height, FEATURES_PER_CELL).
         """
-        return Box(low=0, high=len(CellType), shape=self.observation_shape,
-                   dtype=np.int8)
+        return Box(low=0, high=1, shape=self.observation_shape,
+                   dtype=np.float32)
 
     def get_observation(self, grid_world, agent):
         """
@@ -123,13 +140,64 @@ class TotalObservation(ObservationStrategy):
             agent (str): The agent for which to generate the observation.
 
         Returns:
-            numpy.ndarray: A 2D array containing the full grid state.
+            numpy.ndarray: A 3D array containing the full grid state.
         """
-        obs = np.zeros(self.observation_shape, dtype=np.int8)
+        obs = np.zeros(self.observation_shape, dtype=np.float32)
 
         for x in range(self.observation_shape[0]):
             for y in range(self.observation_shape[1]):
-                obs[x, y] = grid_world.grid[x, y]
+                cell = grid_world.get_cell((x, y))
+
+                # Feature 1: Cell type (normalized)
+                obs[x, y, 0] = cell.cell_type.value / len(CellType)
+
+                # Feature 2: Pollution level (normalized)
+                pollution_normalized = (
+                        (cell.pollution - grid_world.min_pollution) /
+                        (grid_world.max_pollution - grid_world.min_pollution)
+                )
+                obs[x, y, 1] = pollution_normalized
+
+                # Feature 3: Flower presence and type (normalized)
+                if cell.has_flower():
+                    flower_type_normalized = (
+                        (cell.flower.flower_type + 1) /
+                        len(grid_world.flowers_data)
+                    )
+                    obs[x, y, 2] = flower_type_normalized
+
+                    # Feature 4: Flower growth stage (normalized)
+                    growth_stage_normalized = (
+                        (cell.flower.current_growth_stage + 1) /
+                        (cell.flower.num_growth_stage + 1)
+                    )
+                    obs[x, y, 3] = growth_stage_normalized
+
+                # Feature 5: Agent presence (normalized)
+                if cell.has_agent():
+                    # Find the index of the agent in the grid world
+                    agent_idx = None
+                    for i, ag in enumerate(grid_world.agents):
+                        if cell.agent == ag:
+                            agent_idx = i
+                            break
+
+                    if agent_idx is not None:
+                        agent_normalized = (
+                                (agent_idx + 1) / len(grid_world.agents)
+                        )
+                        obs[x, y, 4] = agent_normalized
+
+                # Feature 6: Agent X position (normalized)
+                obs[x, y, 5] = (
+                        self.agents[agent].position[0] / (grid_world.width - 1)
+                )
+
+                # Feature 7: Agent Y position (normalized)
+                obs[x, y, 6] = (
+                        self.agents[agent].position[1] /
+                        (grid_world.height - 1)
+                )
 
         return obs
 
@@ -140,6 +208,16 @@ class PartialObservation(ObservationStrategy):
 
     This strategy simulates limited perception by only showing agents a
     square area centered on their current position.
+
+    Each cell in the visible area is represented as a vector of features:
+
+    * Cell type (normalized)
+    * Pollution level (normalized)
+    * Flower presence and type (normalized)
+    * Flower growth stage (normalized)
+    * Agent presence (normalized)
+    * Agent's X position (normalized)
+    * Agent's Y position (normalized)
 
     Attributes:
         range (int): The visibility range in cells around the agent's position.
@@ -153,13 +231,15 @@ class PartialObservation(ObservationStrategy):
 
         Args:
             agents (dict): A dictionary mapping the gymnasium IDs of the agents
-                that will receive observations to their objects.
+                that will receive observations to their instances
+                (e.g. Dict[AgentID, Agent])
             range (int, optional): The number of cells visible in each
                 direction from the agent.
         """
         super().__init__(agents)
         self.range = range
-        self.observation_shape = (2 * range + 1, 2 * range + 1)
+        self.observation_shape = (2 * range + 1, 2 * range + 1,
+                                  FEATURES_PER_CELL)
 
     def observation_space(self, agent):
         """
@@ -171,15 +251,16 @@ class PartialObservation(ObservationStrategy):
 
         Returns:
             gym.spaces.Box: A box space with dimensions based on the visibility
-            range.
+            range and features per cell.
         """
-        return Box(low=0, high=len(CellType), shape=self.observation_shape,
-                   dtype=np.int8)
+        return Box(low=0, high=1, shape=self.observation_shape,
+                   dtype=np.float32)
 
     def get_observation(self, grid_world, agent):
         """
         Generate a partial observation centered on the agent's position.
 
+        Each cell in the visible area is represented with multiple features.
         Areas outside the grid boundaries appear as zeros in the observation.
 
         Args:
@@ -187,10 +268,10 @@ class PartialObservation(ObservationStrategy):
             agent (str): The agent for which to generate the observation.
 
         Returns:
-            numpy.ndarray: A 2D array containing the visible portion of the
-                grid.
+            numpy.ndarray: A 3D array containing the visible portion of the
+                grid with all features.
         """
-        obs = np.zeros(self.observation_shape, dtype=np.int8)
+        obs = np.zeros(self.observation_shape, dtype=np.float32)
         agent_x, agent_y = self.agents[agent].position
 
         for i in range(self.observation_shape[0]):
@@ -199,6 +280,52 @@ class PartialObservation(ObservationStrategy):
                 y = agent_y + i - self.range
 
                 if 0 <= y < grid_world.height and 0 <= x < grid_world.width:
-                    obs[i, j] = grid_world.grid[x, y]
+                    cell = grid_world.get_cell((x, y))
+
+                    # Feature 1: Cell type (normalized)
+                    obs[i, j, 0] = cell.cell_type.value / len(CellType)
+
+                    # Feature 2: Pollution level (normalized)
+                    pollution_normalized = (
+                        (cell.pollution - grid_world.min_pollution) /
+                        (grid_world.max_pollution - grid_world.min_pollution)
+                    )
+                    obs[i, j, 1] = pollution_normalized
+
+                    # Feature 3: Flower presence and type (normalized)
+                    if cell.has_flower():
+                        flower_type_normalized = (
+                            (cell.flower.flower_type + 1) /
+                            len(grid_world.flowers_data)
+                        )
+                        obs[i, j, 2] = flower_type_normalized
+
+                        # Feature 4: Flower growth stage (normalized)
+                        growth_stage_normalized = (
+                            (cell.flower.current_growth_stage + 1) /
+                            (cell.flower.num_growth_stage + 1)
+                        )
+                        obs[i, j, 3] = growth_stage_normalized
+
+                    # Feature 5: Agent presence (normalized)
+                    if cell.has_agent():
+                        # Find the index of the agent in the grid world
+                        agent_idx = None
+                        for idx, ag in enumerate(grid_world.agents):
+                            if cell.agent == ag:
+                                agent_idx = idx
+                                break
+
+                        if agent_idx is not None:
+                            agent_normalized = (
+                                (agent_idx + 1) / len(grid_world.agents)
+                            )
+                            obs[i, j, 4] = agent_normalized
+
+                    # Feature 6: Agent X position (normalized)
+                    obs[i, j, 5] = agent_x / (grid_world.width - 1)
+
+                    # Feature 7: Agent Y position (normalized)
+                    obs[i, j, 6] = agent_y / (grid_world.height - 1)
 
         return obs
