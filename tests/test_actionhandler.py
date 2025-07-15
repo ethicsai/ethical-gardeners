@@ -3,8 +3,7 @@ from unittest.mock import Mock
 
 import numpy as np
 
-from ethicalgardeners.action import create_action_enum, \
-    get_planting_action_for_type
+from ethicalgardeners.action import create_action_enum
 from ethicalgardeners.actionhandler import ActionHandler
 from ethicalgardeners.agent import Agent
 
@@ -203,8 +202,8 @@ class TestActionHandler(unittest.TestCase):
             self.action_enum.RIGHT.value] = 0  # RIGHT movement invalid
 
         # PLANT_TYPE_1 should be masked (no seeds)
-        plant_type_1_action = get_planting_action_for_type(
-            self.action_handler.action_enum, 1)
+        plant_type_1_action = (
+            self.action_handler.action_enum.get_planting_action_for_type(1))
         expected_mask[plant_type_1_action.value] = 0
 
         # Assert the agent's action mask matches our expectations

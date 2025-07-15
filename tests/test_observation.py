@@ -254,8 +254,8 @@ class TestPartialObservation(unittest.TestCase):
         # bottom-right quadrant of the observation should have valid values
         for i in range(self.observation.observation_shape[0]):
             for j in range(self.observation.observation_shape[1]):
-                x = j - self.observation.range
-                y = i - self.observation.range
+                x = j - self.observation.obs_range
+                y = i - self.observation.obs_range
 
                 if x < 0 or y < 0:
                     self.assertTrue(np.all(obs[i, j, :2] == 0))

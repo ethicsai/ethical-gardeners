@@ -5,9 +5,6 @@ import warnings
 
 import numpy as np
 
-from ethicalgardeners.action import get_non_planting_actions, \
-    get_planting_action_for_type
-
 
 class ActionHandler:
     """
@@ -60,9 +57,7 @@ class ActionHandler:
         elif action == self.action_enum.WAIT:
             self.wait(agent)
         else:  # Assume action is a PLANT_TYPE_i action
-            self.plant_flower(agent, action.value -
-                              len(get_non_planting_actions(self.action_enum))
-                              )  # Extract flower type from action
+            self.plant_flower(agent, action.flower_type)
 
     def move_agent(self, agent, action):
         """
@@ -77,9 +72,10 @@ class ActionHandler:
         new_position = self.compute_new_position(agent.position, action)
 
         if self.grid_world.valid_move(new_position):
+            self.grid_world.get_cell(agent.position).agent = None
+
             agent.move(new_position)
 
-            self.grid_world.get_cell(agent.position).agent = None
             self.grid_world.get_cell(new_position).agent = agent
 
         else:
@@ -100,19 +96,26 @@ class ActionHandler:
             agent (:py:class:`.Agent`): The agent planting the flower.
             flower_type (int): The type of flower to plant.
         """
-        if (agent.can_plant(flower_type) and
-                self.grid_world.get_cell(agent.position).can_plant_on()):
-            agent.use_seed(flower_type)
+        agent.turns_without_income += 1
 
-            self.grid_world.place_flower(agent.position, flower_type)
-        else:
+        cell = self.grid_world.get_cell(agent.position)
+        if not agent.can_plant(flower_type):
             warnings.warn(
                 f"Invalid plant attempted by {agent} with flower_type "
-                f"{flower_type}. The agent cannot plant any flower of this "
-                f"type. The action is ignored."
+                f"{flower_type}. The agent does not have seeds of this type. "
+                f"The action is ignored."
             )
+            return
+        elif not cell.can_plant_on():
+            warnings.warn(
+                f"Invalid plant attempted by {agent} with flower_type "
+                f"{flower_type}. The cell at {agent.position} cannot be "
+                f"planted on. The action is ignored."
+            )
+            return
 
-        agent.turns_without_income += 1
+        agent.use_seed(flower_type)
+        self.grid_world.place_flower(agent.position, flower_type)
 
     def harvest_flower(self, agent):
         """
@@ -125,33 +128,36 @@ class ActionHandler:
             agent (:py:class:`.Agent`): The agent harvesting the flower.
         """
         flower = self.grid_world.get_cell(agent.position).flower
-        if flower:
-            if flower.is_grown():
-                self.grid_world.remove_flower(agent.position)
-
-                if self.grid_world.num_seeds_returned is not None:
-                    if self.grid_world.num_seeds_returned == -3:
-                        num_seeds_returned = (
-                            self.grid_world.random_generator.randint(1, 5))
-                    else:
-                        num_seeds_returned = self.grid_world.num_seeds_returned
-                    agent.add_seed(flower.flower_type, num_seeds_returned)
-
-                agent.add_money(
-                    self.grid_world.flowers_data[flower.flower_type]['price'])
-            else:
-                warnings.warn(
-                    f"Invalid harvest attempted by {agent} with flower "
-                    f"{flower}. The flower is not fully grown. The action"
-                    f" is ignored."
-                )
-        else:
+        if not flower:
             warnings.warn(
                 f"Invalid harvest attempted by {agent} with flower "
                 f"{flower}. There is no flower at {agent.position}. The action"
                 f" is ignored."
             )
             agent.turns_without_income += 1
+            return
+
+        if not flower.is_grown():
+            warnings.warn(
+                f"Invalid harvest attempted by {agent} with flower "
+                f"{flower}. The flower is not fully grown. The action"
+                f" is ignored."
+            )
+            agent.turns_without_income += 1
+            return
+
+        self.grid_world.remove_flower(agent.position)
+
+        if self.grid_world.num_seeds_returned is not None:
+            if self.grid_world.num_seeds_returned == -3:
+                num_seeds_returned = (
+                    self.grid_world.random_generator.randint(1, 5))
+            else:
+                num_seeds_returned = self.grid_world.num_seeds_returned
+            agent.add_seed(flower.flower_type, num_seeds_returned)
+
+        agent.add_money(
+            self.grid_world.flowers_data[flower.flower_type]['price'])
 
     def wait(self, agent):
         """
@@ -195,7 +201,7 @@ class ActionHandler:
         can_plant_on_cell = self.grid_world.get_cell(
             agent.position).can_plant_on()
         for i in range(len(agent.seeds)):
-            plant_action = get_planting_action_for_type(self.action_enum, i)
+            plant_action = self.action_enum.get_planting_action_for_type(i)
             if not agent.can_plant(i) or not can_plant_on_cell:
                 mask[plant_action.value] = 0
 
