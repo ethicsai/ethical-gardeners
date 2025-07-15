@@ -116,6 +116,7 @@ class ActionHandler:
 
         agent.use_seed(flower_type)
         self.grid_world.place_flower(agent.position, flower_type)
+        agent.flowers_planted[flower_type] += 1
 
     def harvest_flower(self, agent):
         """
@@ -158,6 +159,9 @@ class ActionHandler:
 
         agent.add_money(
             self.grid_world.flowers_data[flower.flower_type]['price'])
+
+        agent.flowers_planted[flower.flower_type] -= 1
+        agent.flowers_harvested[flower.flower_type] += 1
 
     def wait(self, agent):
         """

@@ -88,8 +88,6 @@ class Agent:
             if self.seeds[flower_type] != -1:
                 # Only decrement if the seed count is not infinite
                 self.seeds[flower_type] -= 1
-
-            self.flowers_planted[flower_type] += 1
             return True
 
         return False

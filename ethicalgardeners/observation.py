@@ -167,7 +167,8 @@ class TotalObservation(ObservationStrategy):
                 if cell.pollution is not None:
                     pollution_normalized = (
                             (cell.pollution - grid_world.min_pollution) /
-                            (grid_world.max_pollution - grid_world.min_pollution)
+                            (grid_world.max_pollution -
+                             grid_world.min_pollution)
                     )
 
                 obs[x, y, 1] = pollution_normalized
@@ -194,11 +195,7 @@ class TotalObservation(ObservationStrategy):
                 # Feature 5: Agent presence (normalized)
                 if cell.has_agent():
                     # Find the index of the agent in the grid world
-                    agent_idx = None
-                    for i, ag in enumerate(grid_world.agents):
-                        if cell.agent == ag:
-                            agent_idx = i
-                            break
+                    agent_idx = grid_world.agents.index(cell.agent)
 
                     if agent_idx is not None:
                         # +1 because agent indices start at 0
@@ -351,11 +348,7 @@ class PartialObservation(ObservationStrategy):
                     # Feature 5: Agent presence (normalized)
                     if cell.has_agent():
                         # Find the index of the agent in the grid world
-                        agent_idx = None
-                        for idx, ag in enumerate(grid_world.agents):
-                            if cell.agent == ag:
-                                agent_idx = idx
-                                break
+                        agent_idx = grid_world.agents.index(cell.agent)
 
                         if agent_idx is not None:
                             # +1 because agent indices start at 0

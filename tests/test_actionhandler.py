@@ -25,6 +25,8 @@ class TestActionHandler(unittest.TestCase):
         self.agent = Mock(spec=Agent)
         self.agent.position = (3, 3)
         self.agent.turns_without_income = 0
+        self.agent.flowers_planted = {0: 0}
+        self.agent.flowers_harvested = {0: 0}
 
     def test_move_agent(self):
         """Test the move_agent method.
@@ -80,6 +82,9 @@ class TestActionHandler(unittest.TestCase):
         self.grid_world.place_flower.assert_called_with(self.agent.position,
                                                         flower_type)
 
+        # Verify the flowers planted by the agent are incremented
+        self.assertEqual(self.agent.flowers_planted[0], 1)
+
     def test_plant_flower_failure(self):
         """Test planting a flower when the agent cannot.
 
@@ -125,6 +130,9 @@ class TestActionHandler(unittest.TestCase):
         # Verify the agent received rewards
         self.agent.add_seed.assert_called_with(0, 2)
         self.agent.add_money.assert_called_with(10.0)
+
+        # Verify the flowers harvested by the agent are incremented
+        self.assertEqual(self.agent.flowers_harvested[0], 1)
 
     def test_harvest_flower_not_grown(self):
         """Test harvesting a flower that is not grown.
