@@ -15,7 +15,6 @@ This module defines some reward function used to compute rewards for agents:
 """
 from math import log
 
-from ethicalgardeners.action import get_non_planting_actions
 from ethicalgardeners.constants import MAX_PENALTY_TURNS
 
 
@@ -107,7 +106,7 @@ class RewardFunctions:
             planting and harvesting actions, or 0 for other actions.
         """
         # Reward computed only for planting and harvesting actions
-        if action not in get_non_planting_actions(self.action_enum):
+        if action not in self.action_enum.get_non_planting_actions():
             p_max = grid_world.max_pollution
             p_min = grid_world.min_pollution
             position = agent.position
@@ -120,7 +119,7 @@ class RewardFunctions:
             flower = cell.flower
             flower_type = flower.flower_type
             flower_pollution_reduction = (
-                grid_world.flower_data[flower_type].pollution_reduction)
+                grid_world.flowers_data[flower_type].pollution_reduction)
 
             # Current pollution level in the cell
             cell_pollution = cell.pollution
@@ -148,13 +147,17 @@ class RewardFunctions:
             if cell.has_flower():
                 return 0.0
 
+            # Check if the previous cell had a flower
+            if not prev_cell.has_flower():
+                return 0.0
+
             flower = prev_cell.flower
             flower_type = flower.flower_type
-            if len(grid_world.flower_data[
+            if len(grid_world.flowers_data[
                        flower_type].pollution_reduction) == 0:
                 return 0.0
             flower_pollution_grown_reduction = (
-                grid_world.flower_data[flower_type].pollution_reduction[-1])
+                grid_world.flowers_data[flower_type].pollution_reduction[-1])
 
             # Current pollution level in the cell
             cell_pollution = cell.pollution
@@ -204,16 +207,20 @@ class RewardFunctions:
             if cell.has_flower():
                 return 0.0
 
+            # Check if the previous cell had a flower
+            if not prev_cell.has_flower():
+                return 0.0
+
             flower = prev_cell.flower
             flower_type = flower.flower_type
 
             # Get the monetary value of the flower
-            flower_value = grid_world.flower_data[flower_type]['price']
+            flower_value = grid_world.flowers_data[flower_type]['price']
 
             # Normalize the reward based on the maximum possible value
             highest_flower_value = max(
-                grid_world.flower_data[ft]['price'] for ft in
-                grid_world.flower_data)
+                grid_world.flowers_data[ft]['price'] for ft in
+                grid_world.flowers_data)
             return flower_value / highest_flower_value
         else:
             # Calculate penalty for not earning money
@@ -240,7 +247,7 @@ class RewardFunctions:
         Returns:
             float: The normalized biodiversity reward (between -1 and 1).
         """
-        if action in get_non_planting_actions(self.action_enum):
+        if action in self.action_enum.get_non_planting_actions():
             return 0.0
 
         position = agent.position
@@ -255,13 +262,13 @@ class RewardFunctions:
 
         # Count the number of different flower types planted by all agents
         flowers = {flower_type: 0 for flower_type in
-                   grid_world.flower_data.keys()}
+                   grid_world.flowers_data.keys()}
         total_flowers = 0
 
         for agent in grid_world.agents:
-            for flower_type, flower_list in agent.flowers_planted.items():
-                flowers[flower_type] += len(flower_list)
-                total_flowers += len(flower_list)
+            for flower_type, count in agent.flowers_planted.items():
+                flowers[flower_type] += count
+                total_flowers += count
 
         # Create a dictionary to hold the flower counts before planting
         prev_flowers = dict(flowers)  # Copy current flower counts
@@ -284,7 +291,7 @@ class RewardFunctions:
                 ratio = flowers[flower_type] / total_flowers
                 biodiversity -= ratio * log(ratio)
 
-        max_biodiversity = log(len(grid_world.flower_data))
+        max_biodiversity = log(len(grid_world.flowers_data))
 
         # Compute the impact of the agent's planting action and normalize
         if max_biodiversity > 0:

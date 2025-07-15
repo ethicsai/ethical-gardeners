@@ -503,17 +503,23 @@ class WorldGrid:
 
         cell.flower = None
 
-    def update_pollution(self):
+    def update_cell(self):
         """
-        Updates the pollution level of all cells in the grid.
+        Updates the pollution and flowers of all cells in the grid.
 
         For each cell, if it contains a flower, pollution decreases by the
-        flower's pollution reduction value. If it does not contain a flower,
-        pollution increases by the pollution increment value.
+        flower's pollution reduction value and make the flower grow. If it does
+        not contain a flower, pollution increases by the pollution increment
+        value.
         """
         for row in self.grid:
             for cell in row:
+                # Update pollution level
                 cell.update_pollution(self.min_pollution, self.max_pollution)
+
+                # If the cell has a flower, make it grow
+                if cell.has_flower():
+                    cell.flower.grow()
 
     def valid_position(self, position):
         """
@@ -554,11 +560,13 @@ class WorldGrid:
             bool: True if the move is valid, False otherwise.
         """
         # Check if the cell is occupied by another agent
+        if not self.valid_position(new_position):
+            return False
         if self.collisions_on:
             if self.get_cell(new_position).has_agent():
                 return False
 
-        return self.valid_position(new_position)
+        return True
 
     def get_cell(self, position):
         """
@@ -642,7 +650,7 @@ class Cell:
                 self.pollution - self.flower.get_pollution_reduction(),
                 min_pollution
             )
-        elif not self.has_flower():
+        else:
             self.pollution = min(
                 self.pollution + self.pollution_increment,
                 max_pollution
@@ -725,7 +733,7 @@ class Flower:
         self.price = flowers_data[flower_type]['price']
         self.pollution_reduction = (
             flowers_data)[flower_type]["pollution_reduction"]
-        self.num_growth_stage = len(self.pollution_reduction)
+        self.num_growth_stage = len(self.pollution_reduction) - 1
         self.current_growth_stage = growth_stage
 
     def grow(self):

@@ -96,7 +96,7 @@ class TestRewardFunctions(unittest.TestCase):
         # Configure flower data with pollution reduction values
         flower_data = Mock()
         flower_data.pollution_reduction = [1, 2, 3]
-        self.mock_grid_world.flower_data = {0: flower_data}
+        self.mock_grid_world.flowers_data = {0: flower_data}
 
         # Test the method
         result = self.reward_functions.compute_ecology_reward(
@@ -140,7 +140,7 @@ class TestRewardFunctions(unittest.TestCase):
         # Configure flower data with pollution reduction
         flower_data = Mock()
         flower_data.pollution_reduction = [1, 2, 3]
-        self.mock_grid_world.flower_data = {0: flower_data}
+        self.mock_grid_world.flowers_data = {0: flower_data}
 
         # Test the method
         result = self.reward_functions.compute_ecology_reward(
@@ -179,7 +179,7 @@ class TestRewardFunctions(unittest.TestCase):
         self.mock_grid_world_prev.get_cell.return_value = mock_prev_cell
 
         # Configure flower price data
-        self.mock_grid_world.flower_data = {
+        self.mock_grid_world.flowers_data = {
             0: {"price": 10},
             1: {"price": 20}
         }
@@ -237,24 +237,15 @@ class TestRewardFunctions(unittest.TestCase):
         self.mock_grid_world.get_cell.return_value = mock_cell
 
         # Configure flower data types
-        self.mock_grid_world.flower_data = {0: {}, 1: {}, 2: {}}
+        self.mock_grid_world.flowers_data = {0: {}, 1: {}, 2: {}}
 
         # Create mock agents with planted flowers
         agent1 = Mock()
         agent2 = Mock()
 
-        # Create mock flowers of different types (more type 0 and 1 than 2)
-        flower0_1 = Mock(flower_type=0)
-        flower0_2 = Mock(flower_type=0)
-        flower0_3 = Mock(flower_type=0)
-        flower1_1 = Mock(flower_type=1)
-        flower1_2 = Mock(flower_type=1)
-        flower2_1 = Mock(flower_type=2)
-
         # Assign flowers to agents
-        agent1.flowers_planted = {0: [flower0_1, flower0_2], 1: [flower1_1]}
-        agent2.flowers_planted = {0: [flower0_3], 1: [flower1_2],
-                                  2: [flower2_1]}
+        agent1.flowers_planted = {0: 2, 1: 1}
+        agent2.flowers_planted = {0: 1, 1: 1, 2: 1}
 
         self.mock_grid_world.agents = [agent1, agent2]
 
@@ -311,22 +302,15 @@ class TestRewardFunctions(unittest.TestCase):
         self.mock_grid_world.get_cell.return_value = mock_cell
 
         # Configure flower data types
-        self.mock_grid_world.flower_data = {0: {}, 1: {}, 2: {}}
+        self.mock_grid_world.flowers_data = {0: {}, 1: {}, 2: {}}
 
         # Create mock agents with planted flowers
         agent1 = Mock()
         agent2 = Mock()
 
-        # Create mock flowers with type 0 already overrepresented
-        flower0_1 = Mock(flower_type=0)
-        flower0_2 = Mock(flower_type=0)
-        flower0_3 = Mock(flower_type=0)
-        flower1_1 = Mock(flower_type=1)
-        flower2_1 = Mock(flower_type=2)
-
         # Assign flowers to agents
-        agent1.flowers_planted = {0: [flower0_1, flower0_2], 1: [flower1_1]}
-        agent2.flowers_planted = {0: [flower0_3], 1: [flower2_1]}
+        agent1.flowers_planted = {0: 2, 1: 1}
+        agent2.flowers_planted = {0: 1, 1: 1}
 
         self.mock_grid_world.agents = [agent1, agent2]
 
