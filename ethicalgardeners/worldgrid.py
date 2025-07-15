@@ -157,7 +157,7 @@ class WorldGrid:
         The file format supports:
 
         - First line: width height
-        - Grid representation: G (ground), O (obstacle), W (wall),
+        - Grid representation: G (ground), O (obstacle),
           FX_Y (ground with flower type X at growth stage Y),
           AX (ground with agent ID X)
         - Agent definitions: ID,money,seeds
@@ -206,8 +206,6 @@ class WorldGrid:
                     grid[i][j] = Cell(CellType.GROUND)
                 elif cell_code == 'O':
                     grid[i][j] = Cell(CellType.OBSTACLE)
-                elif cell_code == 'W':
-                    grid[i][j] = Cell(CellType.WALL)
                 elif cell_code.startswith('F'):
                     grid[i][j] = Cell(CellType.GROUND)
                     flower_info = cell_code[1:].split('_')
@@ -335,7 +333,6 @@ class WorldGrid:
                         'height': int,  # Height of the grid
                         'cells': [  # List of special cells (other than GROUND)
                             {'position': (row, col), 'type': 'OBSTACLE'},
-                            {'position': (row, col), 'type': 'WALL'},
                         ],
                         'min_pollution': float,  # Minimum pollution level
                         'max_pollution': float,  # Maximum pollution level
@@ -395,7 +392,7 @@ class WorldGrid:
         grid = [[Cell(CellType.GROUND) for _ in range(width)] for _ in
                 range(height)]
 
-        # Place special cells (obstacles, walls) based on the configuration
+        # Place special cells (obstacles, ...) based on the configuration
         for cell_info in grid_config.get('cells', []):
             position = cell_info['position']
             cell_type_str = cell_info['type']
@@ -589,11 +586,9 @@ class CellType(Enum):
         GROUND: A normal cell where agents can walk, plant and harvest flowers.
         OBSTACLE: An impassable cell that agents cannot traverse or interact
             with.
-        WALL: A boundary cell that defines the limits of the environment.
     """
     GROUND = 0
     OBSTACLE = 1
-    WALL = 2
 
 
 class Cell:
@@ -606,7 +601,7 @@ class Cell:
     :py:attr:`pollution_increment`.
 
     Attributes:
-        cell_type (CellType): Type of the cell (ground, obstacle, wall).
+        cell_type (CellType): Type of the cell (ground, obstacle).
         flower (Flower): The flower present in this cell, if any.
         agent (Agent): The agent currently occupying this cell, if any.
         pollution (float): Current pollution level of the cell.
@@ -622,14 +617,17 @@ class Cell:
         Args:
             cell_type (CellType): The type of cell to create.
             pollution (float, optional): Initial pollution level of the cell.
-                Defaults to 50.
+                Defaults to 50 for ground cells, None for obstacles.
             pollution_increment (float, optional): Amount by which pollution
                 increases each step if no flower in the cell. Defaults to 1.
         """
         self.cell_type = cell_type
         self.flower = None
         self.agent = None
-        self.pollution = pollution
+        if cell_type == CellType.GROUND:
+            self.pollution = pollution
+        elif cell_type == CellType.OBSTACLE:
+            self.pollution = None
         self.pollution_increment = pollution_increment
 
     def update_pollution(self, min_pollution, max_pollution):
@@ -645,6 +643,9 @@ class Cell:
             min_pollution (float): Minimum pollution level allowed.
             max_pollution (float): Maximum pollution level allowed.
         """
+        if self.pollution is None:
+            return
+
         if self.has_flower():
             self.pollution = max(
                 self.pollution - self.flower.get_pollution_reduction(),

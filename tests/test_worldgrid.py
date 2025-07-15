@@ -16,11 +16,11 @@ class TestWorldGrid(unittest.TestCase):
         self.temp_file = tempfile.NamedTemporaryFile(delete=False)
         self.temp_file_path = self.temp_file.name
         self.temp_file.write(b"5 5\n")
-        self.temp_file.write(b"G G G W W\n")
-        self.temp_file.write(b"G F0_2 G G W\n")
-        self.temp_file.write(b"G O G A0 W\n")
-        self.temp_file.write(b"G G G G W\n")
-        self.temp_file.write(b"W W W W W\n")
+        self.temp_file.write(b"G G G O O\n")
+        self.temp_file.write(b"G F0_2 G G O\n")
+        self.temp_file.write(b"G O G A0 O\n")
+        self.temp_file.write(b"G G G G O\n")
+        self.temp_file.write(b"O O O O O\n")
         self.temp_file.write(b"0,100,5|10|3\n")
         self.temp_file.write(b"0,2,1|2|3\n")
         self.temp_file.close()
@@ -36,7 +36,7 @@ class TestWorldGrid(unittest.TestCase):
                 0: {'price': 10, 'pollution_reduction': [0, 1, 2, 3]},
             },
             'cells': [
-                {'position': (0, 0), 'type': 'WALL'},
+                {'position': (0, 0), 'type': 'OBSTACLE'},
                 {'position': (1, 1), 'type': 'OBSTACLE'}
             ],
             'agents': [
@@ -73,7 +73,8 @@ class TestWorldGrid(unittest.TestCase):
         self.assertEqual(self.test_grid.height, 5)
 
         # Check cell types
-        self.assertEqual(self.test_grid.grid[0][3].cell_type, CellType.WALL)
+        self.assertEqual(self.test_grid.grid[0][3].cell_type,
+                         CellType.OBSTACLE)
         self.assertEqual(self.test_grid.grid[2][1].cell_type,
                          CellType.OBSTACLE)
         self.assertEqual(self.test_grid.grid[1][0].cell_type, CellType.GROUND)
@@ -200,7 +201,7 @@ class TestWorldGrid(unittest.TestCase):
 
         This test verifies that:
         1. The grid dimensions match the configuration
-        2. Special cells (walls, obstacles) are placed correctly
+        2. Special cells (obstacles, ...) are placed correctly
         3. Agents are created with the specified properties
         4. Flowers are created with the correct types and growth stages
         """
@@ -224,7 +225,8 @@ class TestWorldGrid(unittest.TestCase):
                          [0, 1, 2, 3])
 
         # Check special cells
-        self.assertEqual(self.test_grid.grid[0][0].cell_type, CellType.WALL)
+        self.assertEqual(self.test_grid.grid[0][0].cell_type,
+                         CellType.OBSTACLE)
         self.assertEqual(self.test_grid.grid[1][1].cell_type,
                          CellType.OBSTACLE)
 
@@ -251,7 +253,7 @@ class TestWorldGrid(unittest.TestCase):
 
         This test verifies that:
         1. The grid dimensions match the configuration
-        2. Special cells (walls, obstacles) are placed correctly
+        2. Special cells (obstacles, ...) are placed correctly
         3. Agents are created with the specified properties
         4. Flowers are created with the correct types and growth stages
         """
