@@ -1,0 +1,11 @@
+graphical:
+  enabled: false
+console:
+  enabled: true
+  post_analysis_on: true
+  out_dir_path: "./videos"
+  characters:
+    ground: " "
+    obstacle: "#"
+    agent: "A"
+    flower: "F"

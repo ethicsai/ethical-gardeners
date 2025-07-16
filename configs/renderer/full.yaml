@@ -1,0 +1,17 @@
+graphical:
+  enabled: true
+  post_analysis_on: true
+  out_dir_path: "./videos"
+  cell_size: 50
+  colors:
+    background: [255, 255, 255]
+    obstacle: [100, 100, 100]
+console:
+  enabled: true
+  post_analysis_on: false
+  out_dir_path: "./videos"
+  characters:
+    ground: " "
+    obstacle: "#"
+    agent: "A"
+    flower: "F"
