@@ -94,9 +94,10 @@ class TestRewardFunctions(unittest.TestCase):
         self.mock_grid_world.get_cell.return_value = mock_cell
 
         # Configure flower data with pollution reduction values
-        flower_data = Mock()
-        flower_data.pollution_reduction = [1, 2, 3]
-        self.mock_grid_world.flowers_data = {0: flower_data}
+        self.mock_grid_world.flowers_data = {0: {
+            'price': 10,
+            'pollution_reduction': [1, 2, 3]}
+        }
 
         # Test the method
         result = self.reward_functions.compute_ecology_reward(
@@ -138,9 +139,10 @@ class TestRewardFunctions(unittest.TestCase):
         self.mock_grid_world_prev.get_cell.return_value = mock_prev_cell
 
         # Configure flower data with pollution reduction
-        flower_data = Mock()
-        flower_data.pollution_reduction = [1, 2, 3]
-        self.mock_grid_world.flowers_data = {0: flower_data}
+        self.mock_grid_world.flowers_data = {0: {
+            'price': 10,
+            'pollution_reduction': [1, 2, 3]}
+        }
 
         # Test the method
         result = self.reward_functions.compute_ecology_reward(
