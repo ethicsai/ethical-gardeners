@@ -18,7 +18,7 @@ dependencies = [
     "numpy>=1.20.0",
     "gymnasium>=0.26.0",
     "pettingzoo>=1.20.0",
-    "hydra>=1.2.0",
+    "hydra-core>=1.2.0",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
