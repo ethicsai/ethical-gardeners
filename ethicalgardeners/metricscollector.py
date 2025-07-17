@@ -3,14 +3,16 @@ The MetricsCollector module provides metrics tracking and exporting
 capabilities for the Ethical Gardeners simulation environment.
 
 This module enables monitoring of simulation runs by:
+
 1. Collecting various metrics during simulation execution
 2. Exporting metrics to local files like CSV files for offline analysis
 3. Sending metrics to monitoring services like Weights and Biases (WandB)
 
 The metrics tracked include:
-- Flower planted and harvested statistics (overall and per-agent)
-- Pollution levels across the environment
-- Agent rewards and accumulated rewards
+
+* Flower planted and harvested statistics (overall and per-agent)
+* Pollution levels across the environment
+* Agent rewards and accumulated rewards
 
 The module is designed to be configurable, allowing users to enable or disable
 metrics export and sending based on their research requirements.
@@ -36,28 +38,29 @@ class MetricsCollector:
         send_on (bool): Flag indicating whether metrics should be sent to
             external services like WandB.
         metrics (dict): Dictionary containing all collected metrics, including:
-            - step (int): Current step in the simulation.
-            - total_planted_flowers (int): Total number of flowers planted by
-                all agents.
-            - num_planted_flowers_per_agent (dict): Flowers planted per agent.
-            - total_harvested_flowers (int): Total number of flowers harvested.
-            - num_harvested_flowers_per_agent (dict): Flowers harvested per
-                agent.
-            - avg_pollution_percent (float): Average pollution percentage
-                across all cells.
-            - num_cells_pollution_above_90 (int): Number of cells with
-                pollution > 90%.
-            - num_cells_pollution_above_75 (int): Number of cells with
-                pollution > 75%.
-            - num_cells_pollution_above_50 (int): Number of cells with
-                pollution > 50%.
-            - num_cells_pollution_above_25 (int): Number of cells with
-                pollution > 25%.
-            - rewards (dict): Current rewards for each agent.
-            - accumulated_rewards (dict): Cumulative rewards for each agent.
-            - agent_selection (str): Currently selected agent.
+
+            * step (int): Current step in the simulation.
+            * total_planted_flowers (int): Total number of flowers planted by
+              all agents.
+            * num_planted_flowers_per_agent (dict): Flowers planted per agent.
+            * total_harvested_flowers (int): Total number of flowers harvested.
+            * num_harvested_flowers_per_agent (dict): Flowers harvested per
+              agent.
+            * avg_pollution_percent (float): Average pollution percentage
+              across all cells.
+            * num_cells_pollution_above_90 (int): Number of cells with
+              pollution > 90%.
+            * num_cells_pollution_above_75 (int): Number of cells with
+              pollution > 75%.
+            * num_cells_pollution_above_50 (int): Number of cells with
+              pollution > 50%.
+            * num_cells_pollution_above_25 (int): Number of cells with
+              pollution > 25%.
+            * rewards (dict): Current rewards for each agent.
+            * accumulated_rewards (dict): Cumulative rewards for each agent.
+            * agent_selection (str): Currently selected agent.
         _run_id (int): Unique identifier for the run, used for file naming
-        during export.
+            during export.
     """
 
     def __init__(self, out_dir_path, export_on, send_on):
