@@ -3,6 +3,7 @@ import os
 import hydra
 from ethicalgardeners.gardenersenv import GardenersEnv
 
+
 @hydra.main(version_base=None, config_path=os.getcwd())
 def main(config):
     # Initialise the environment with the provided configuration
@@ -22,6 +23,7 @@ def main(config):
 
     # Close the environment
     env.close()
+
 
 if __name__ == "__main__":
     main()

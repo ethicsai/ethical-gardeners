@@ -62,7 +62,7 @@ class Renderer(ABC):
         """
         self.post_analysis_on = post_analysis_on
         self.out_dir_path = out_dir_path if post_analysis_on else "videos"
-        self.frames  = []
+        self.frames = []
 
     def init(self, grid_world):
         """
@@ -113,6 +113,7 @@ class Renderer(ABC):
         generate and save a video from the collected frames.
         """
         pass
+
 
 class ConsoleRenderer(Renderer):
     """
@@ -287,7 +288,6 @@ class ConsoleRenderer(Renderer):
                 f"{idx}: Position={agent.position}, Money={agent.money},"
                 f" Seeds={agent.seeds}")
 
-
     def end_render(self):
         """
         Finalize the rendering process.
@@ -331,6 +331,7 @@ class ConsoleRenderer(Renderer):
             video.release()
 
             print(f"Video saved at {output_path}")
+
 
 class GraphicalRenderer(Renderer):
     """
@@ -401,14 +402,10 @@ class GraphicalRenderer(Renderer):
         self.agent_colors = {}
         self.flower_colors = {}
 
-        try :
-            import pygame
-        except ImportError:
-            raise ImportError(
-                "Error while importing pygame. "
-            )
+        # Create Pygame window and clock
         self.window = None
         self.clock = None
+
         self._run_id = None  # Unique identifier for the run
 
         if post_analysis_on:

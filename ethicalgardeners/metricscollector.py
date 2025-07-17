@@ -284,15 +284,15 @@ class MetricsCollector:
         }
 
         # Add per-agent metrics
-        for agent, count in self.metrics[
-            'num_planted_flowers_per_agent'].items():
+        for agent, count in (
+                self.metrics['num_planted_flowers_per_agent'].items()):
             metrics_dict[f'planted_flowers_agent_{agent}'] = count
 
         metrics_dict['total_harvested_flowers'] = self.metrics[
             'total_harvested_flowers']
 
-        for agent, count in self.metrics[
-            'num_harvested_flowers_per_agent'].items():
+        for agent, count in (
+                self.metrics['num_harvested_flowers_per_agent'].items()):
             metrics_dict[f'harvested_flowers_agent_{agent}'] = count
 
         metrics_dict.update({

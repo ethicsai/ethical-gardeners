@@ -157,7 +157,8 @@ class RewardFunctions:
                        flower_type]['pollution_reduction']) == 0:
                 return 0.0
             flower_pollution_grown_reduction = (
-                grid_world.flowers_data[flower_type]['pollution_reduction'][-1])
+                grid_world.flowers_data[flower_type]['pollution_reduction'][-1]
+            )
 
             # Current pollution level in the cell
             cell_pollution = cell.pollution
