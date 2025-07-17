@@ -15,8 +15,19 @@ entry point of the simulation. It coordinates all simulation components:
 The environment is highly configurable through Hydra configuration files.
 """
 import numpy as np
-import pettingzoo
 from pettingzoo import AECEnv
+# import agent_selector or AgentSelector depending on python version
+try:
+    # Python 3.12 or earlier
+    from pettingzoo.utils.agent_selector import AgentSelector
+    use_function = True
+except ImportError:
+    try:
+        # Python 3.13 or later
+        from pettingzoo.utils import agent_selector
+        use_function = False
+    except ImportError:
+        raise ImportError("Cannot agent_selector or AgentSelector")
 from gymnasium.spaces import Discrete
 
 from ethicalgardeners.action import create_action_enum
@@ -305,8 +316,11 @@ class GardenersEnv(AECEnv):
                 - infos (dict): Additional information for all agents.
         """
         # Initialise the agent selector
-        self._agent_selector = pettingzoo.utils.agent_selector.AgentSelector(
-            self.possible_agents)
+        # Selects the agent selector class based on the Python version
+        if use_function:
+            self._agent_selector = AgentSelector(self.possible_agents)
+        else:
+            self._agent_selector = agent_selector(self.possible_agents)
         self.agent_selection = self._agent_selector.next()
 
         # Reset metrics
