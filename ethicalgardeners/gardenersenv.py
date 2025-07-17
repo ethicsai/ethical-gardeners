@@ -5,12 +5,12 @@ Ethical Gardeners reinforcement learning platform.
 This module implements the PettingZoo AECEnv interface, serving as the primary
 entry point of the simulation. It coordinates all simulation components:
 
-1. World representation and state management
-2. Agent actions and interactions
-3. Observation generation
-4. Reward calculation
-5. Metrics tracking
-6. Visualization rendering
+1. World representation and state management (:py:mod:`.worldgrid`)
+2. Agent actions and interactions (:py:class:`.ActionHandler`)
+3. Observation generation (:py:mod:`.observation`)
+4. Reward calculation (:py:class:`.RewardFunctions`)
+5. Metrics tracking (:py:class:`.MetricsCollector`)
+6. Visualization rendering (:py:mod:`.renderer`)
 
 The environment is highly configurable through Hydra configuration files.
 """
@@ -46,8 +46,10 @@ class GardenersEnv(AECEnv):
                 for reproducible experiments.
             grid_world (:py:class:`.WorldGrid`): The simulated 2D grid world
                 environment.
-            action_enum (Action): Enumeration of possible actions in the
-                environment.
+            prev_grid_world (:py:class:`.WorldGrid`): Copy of the previous grid
+                world state.
+            action_enum (:py:class:`._ActionEnum`): Enumeration of possible
+                actions in the environment.
             possible_agents (list): List of all agent IDs in the environment.
             agents (dict): Mapping from agent IDs to Agent objects.
             action_handler (:py:class:`.ActionHandler`): Handler for processing
@@ -70,8 +72,6 @@ class GardenersEnv(AECEnv):
                 simulation.
             actions_in_current_turn (int): Number of actions taken in the
                 current turn.
-            prev_grid_world (:py:class:`.WorldGrid`): Copy of the previous grid
-                world state.
         """
     metadata = {
         'render_modes': ['human', 'none'],
@@ -494,7 +494,7 @@ class GardenersEnv(AECEnv):
                 world.
             prev_grid_world (:py:class:`.WorldGrid`): The previous state of the
                 grid world.
-            action (Action): The action taken by the agent.
+            action (:py:class:`._ActionEnum`): The action taken by the agent.
 
         Returns:
             dict: Dictionary of reward components and total reward.

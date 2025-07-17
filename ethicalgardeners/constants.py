@@ -117,6 +117,7 @@ agent_palette = [
 """
 This palette provides a range of 40 colors for agents, from reddish to purple
 hues, ensuring a visually distinct representation of agents in the simulation.
+Used in the :py:meth:`.GraphicalRenderer._generate_colors` method.
 """
 
 flower_palette = [
@@ -154,5 +155,5 @@ flower_palette = [
 """
 This palette provides a range of 30 colors for flowers, from greenish to
 yellowish hues, ensuring a visually distinct representation of flowers in the
-simulation.
+simulation. Used in the :py:meth:`.GraphicalRenderer._generate_colors` method
 """
