@@ -1,0 +1,3 @@
+out_dir_path: "./metrics"
+export_on: false
+send_on: true

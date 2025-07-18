@@ -1,0 +1,4 @@
+graphical:
+  enabled: false
+console:
+  enabled: false

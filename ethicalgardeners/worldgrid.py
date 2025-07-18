@@ -30,6 +30,7 @@ randomly, or programmatically), place and manage agents and flowers,
 update environmental conditions, and validate agent actions.
 """
 from enum import Enum
+import copy
 
 import numpy as np
 
@@ -112,12 +113,12 @@ class WorldGrid:
 
         if flowers_data is None:
             flowers_data = {
-                0: {"price": 10, "pollution_reduction": [0, 0, 0, 0, 5]},
-                1: {"price": 5, "pollution_reduction": [0, 0, 1, 3]},
-                2: {"price": 2, "pollution_reduction": [1]}
+                0: {'price': 10, 'pollution_reduction': [0, 0, 0, 0, 5]},
+                1: {'price': 5, 'pollution_reduction': [0, 0, 1, 3]},
+                2: {'price': 2, 'pollution_reduction': [1]}
             }
-        else:
-            self.flowers_data = flowers_data
+
+        self.flowers_data = flowers_data
 
         self.random_generator = random_generator if (
                 random_generator is not None) else np.random.RandomState()
@@ -576,6 +577,15 @@ class WorldGrid:
             Cell: The cell at the specified position.
         """
         return self.grid[position[0]][position[1]]
+
+    def copy(self):
+        """
+        Create a deep copy of the WorldGrid instance.
+
+        Returns:
+            WorldGrid: A new instance of WorldGrid with the same properties.
+        """
+        return copy.deepcopy(self)
 
 
 class CellType(Enum):

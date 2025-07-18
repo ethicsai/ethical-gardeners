@@ -17,9 +17,9 @@ class ActionHandler:
     Attributes:
         grid_world (:py:class:`.WorldGrid`): The grid world environment where
             actions will be executed.
-        action_enum (enum): An enumeration of possible actions (UP, DOWN,
-            LEFT, RIGHT, HARVEST, WAIT, PLANT_TYPE_i). Created dynamically
-            based on the number of flower types available.
+        action_enum (:py:class:`._ActionEnum`): An enumeration of possible
+            actions (UP, DOWN, LEFT, RIGHT, HARVEST, WAIT, PLANT_TYPE_i).
+            Created dynamically based on the number of flower types available.
     """
 
     def __init__(self, grid_world, action_enum):
@@ -29,9 +29,10 @@ class ActionHandler:
         Args:
             grid_world (:py:class:`.WorldGrid`): The grid world environment
                 where actions will be executed.
-            action_enum (enum): An enumeration of possible actions (UP, DOWN,
-                LEFT, RIGHT, HARVEST, WAIT, PLANT_TYPE_i). Created dynamically
-                based on the number of flower types available.
+            action_enum (:py:class:`._ActionEnum`): An enumeration of possible
+                actions (UP, DOWN, LEFT, RIGHT, HARVEST, WAIT, PLANT_TYPE_i).
+                Created dynamically based on the number of flower types
+                available.
         """
         self.grid_world = grid_world
         self.action_enum = action_enum  # Dynamically created Action enum
@@ -45,7 +46,7 @@ class ActionHandler:
 
         Args:
             agent (:py:class:`.Agent`): The agent performing the action.
-            action (:py:attr:`action_enum`): The action to perform (UP,
+            action (:py:class:`._ActionEnum`): The action to perform (UP,
                 DOWN, LEFT, RIGHT, HARVEST, WAIT or PLANT_TYPE_i). PLANT_TYPE_i
                 plants a flower of type i at the agent's current position.
         """
@@ -65,7 +66,7 @@ class ActionHandler:
 
         Args:
             agent (:py:class:`.Agent`): The agent to move.
-            action (:py:attr:`action_enum`): The direction to move (UP,
+            action (:py:class:`._ActionEnum`): The direction to move (UP,
                 DOWN, LEFT, RIGHT).
         """
         # Compute the new position based on the action
@@ -217,7 +218,7 @@ class ActionHandler:
 
         Args:
             position (tuple): The current (x, y) coordinates of the agent.
-            action (:py:attr:`action_enum`): The action to perform
+            action (:py:class:`._ActionEnum`): The action to perform
                 (UP, DOWN, LEFT, RIGHT).
 
         Returns:

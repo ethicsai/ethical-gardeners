@@ -1,0 +1,12 @@
+# Default values
+defaults:
+  - grid: random
+  - observation: partial
+  - metrics: export
+  - renderer: graphical
+  - _self_
+
+# General configuration
+random_seed: 42
+num_iterations: 1000
+render_mode: "human"  # "none" or "human"

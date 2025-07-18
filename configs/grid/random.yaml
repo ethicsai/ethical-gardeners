@@ -1,0 +1,24 @@
+init_method: "random"
+
+# Common parameters for init_random
+min_pollution: 0
+max_pollution: 100
+pollution_increment: 1
+num_seeds_returned: 1
+collisions_on: true
+flowers_data:
+  0:
+    price: 10
+    pollution_reduction: [ 0, 0, 0, 0, 5 ]
+  1:
+    price: 5
+    pollution_reduction: [ 0, 0, 1, 3 ]
+  2:
+    price: 2
+    pollution_reduction: [ 1 ]
+
+# Parameters for init_random
+width: 10
+height: 10
+obstacles_ratio: 0.2
+nb_agent: 2
