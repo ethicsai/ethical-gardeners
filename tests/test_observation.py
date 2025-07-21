@@ -84,7 +84,7 @@ class TestTotalObservation(unittest.TestCase):
 
         self.agents = {'agent1': self.mock_agent}
 
-        self.observation = TotalObservation(self.grid_world, self.agents)
+        self.observation = TotalObservation(self.grid_world)
 
     def test_observation_space(self):
         """
@@ -93,7 +93,8 @@ class TestTotalObservation(unittest.TestCase):
         Verifies that the observation space is a Box with the correct
         dimensions and data type.
         """
-        space = self.observation.observation_space('agent1')
+        agent = self.agents['agent1']
+        space = self.observation.observation_space(agent)
         self.assertEqual(space.shape, (10, 10, FEATURES_PER_CELL))
 
     def test_get_observation(self):
@@ -103,8 +104,8 @@ class TestTotalObservation(unittest.TestCase):
         Ensures that the observation correctly reflects the current state of
         the grid.
         """
-        obs = self.observation.get_observation(self.grid_world,
-                                               'agent1')
+        agent = self.agents['agent1']
+        obs = self.observation.get_observation(self.grid_world, agent)
 
         # Check observation dimensions
         self.assertEqual(obs.shape, (10, 10, FEATURES_PER_CELL))
@@ -197,7 +198,7 @@ class TestPartialObservation(unittest.TestCase):
         self.agents = {'agent1': self.mock_agent}
 
         # Create observation with a viewing range of 2
-        self.observation = PartialObservation(self.agents, 2)
+        self.observation = PartialObservation(2)
 
     def test_observation_space(self):
         """
@@ -206,7 +207,8 @@ class TestPartialObservation(unittest.TestCase):
         Verifies that the observation space is a Box with dimensions based on
         the viewing range.
         """
-        space = self.observation.observation_space('agent1')
+        agent = self.agents['agent1']
+        space = self.observation.observation_space(agent)
         self.assertEqual(space.shape, (5, 5, FEATURES_PER_CELL))
 
     def test_get_observation_center(self):
@@ -216,8 +218,8 @@ class TestPartialObservation(unittest.TestCase):
         Ensures that the partial observation correctly shows the area around
         the agent's position.
         """
-        obs = self.observation.get_observation(self.grid_world,
-                                               'agent1')
+        agent = self.agents['agent1']
+        obs = self.observation.get_observation(self.grid_world, agent)
 
         # Check observation dimensions
         self.assertEqual(obs.shape, (5, 5, FEATURES_PER_CELL))
@@ -247,8 +249,8 @@ class TestPartialObservation(unittest.TestCase):
         # Move agent to corner (0,0)
         self.mock_agent.position = (0, 0)
 
-        obs = self.observation.get_observation(self.grid_world,
-                                               'agent1')
+        agent = self.agents['agent1']
+        obs = self.observation.get_observation(self.grid_world, agent)
 
         # Check that areas outside the grid are filled with zeros only the
         # bottom-right quadrant of the observation should have valid values

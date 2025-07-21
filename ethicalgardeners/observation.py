@@ -22,6 +22,7 @@ from abc import ABC, abstractmethod
 from gymnasium.spaces import Box
 import numpy as np
 
+from ethicalgardeners.agent import Agent
 from ethicalgardeners.constants import FEATURES_PER_CELL
 from ethicalgardeners.worldgrid import CellType
 
@@ -33,31 +34,21 @@ class ObservationStrategy(ABC):
     Observation strategies determine how agents perceive the environment,
     defining the structure of the observation space and how observations
     are generated from the world state.
-
-    Attributes:
-        agents (dict): A dictionary mapping the gymnasium IDs of the agents
-            that will receive observations to their instances
-            (e.g. Dict[AgentID, Agent])
     """
 
-    def __init__(self, agents):
+    def __init__(self):
         """
         Create the observation strategy.
-
-        Args:
-            agents (dict): A dictionary mapping the gymnasium IDs of the agents
-                that will receive observations to their instances
-                (e.g. Dict[AgentID, Agent])
         """
-        self.agents = agents
 
     @abstractmethod
-    def observation_space(self, agent):
+    def observation_space(self, agent: Agent):
         """
         Define the observation space for a specific agent.
 
         Args:
-            agent (str): The agent for which to define the observation space.
+            agent (:py:class:`.Agent`): The agent for which to define the
+                observation space.
 
         Returns:
             gym.Space: The observation space for the specified agent.
@@ -65,13 +56,14 @@ class ObservationStrategy(ABC):
         pass
 
     @abstractmethod
-    def get_observation(self, grid_world, agent):
+    def get_observation(self, grid_world, agent: Agent):
         """
         Generate an observation for an agent based on the current world state.
 
         Args:
             grid_world (:py:class:`.WorldGrid`): The current state of the grid.
-            agent (str): The agent for which to generate the observation.
+            agent (:py:class:`.Agent`): The agent for which to generate the
+                observation.
 
         Returns:
             numpy.ndarray: The observation for the specified agent.
@@ -112,28 +104,26 @@ class TotalObservation(ObservationStrategy):
             (width, height).
     """
 
-    def __init__(self, grid_world, agents):
+    def __init__(self, grid_world):
         """
         Create the total observation strategy.
 
         Args:
             grid_world (:py:class:`.WorldGrid`): The grid world environment to
                 observe.
-            agents (dict): A dictionary mapping the gymnasium IDs of the agents
-                that will receive observations to their instances
-                (e.g. Dict[AgentID, Agent])
         """
-        super().__init__(agents)
+        super().__init__()
         self.observation_shape = (grid_world.width, grid_world.height,
                                   FEATURES_PER_CELL)
 
-    def observation_space(self, agent):
+    def observation_space(self, agent: Agent):
         """
         Define the observation space as a Box with the full grid and
         features per cell.
 
         Args:
-            agent (str): The agent for which to define the observation space.
+            agent (:py:class:`.Agent`): The agent for which to define the
+                observation space.
 
         Returns:
             gym.spaces.Box: A box space with dimensions
@@ -142,13 +132,14 @@ class TotalObservation(ObservationStrategy):
         return Box(low=0, high=1, shape=self.observation_shape,
                    dtype=np.float32)
 
-    def get_observation(self, grid_world, agent):
+    def get_observation(self, grid_world, agent: Agent):
         """
         Generate a complete observation of the entire grid.
 
         Args:
             grid_world (:py:class:`.WorldGrid`): The current state of the grid.
-            agent (str): The agent for which to generate the observation.
+            agent (:py:class:`.Agent`): The agent for which to generate the
+                observation.
 
         Returns:
             numpy.ndarray: A 3D array containing the full grid state.
@@ -207,13 +198,13 @@ class TotalObservation(ObservationStrategy):
                 # Feature 6: Agent X position (normalized)
                 # width - 1 because the X position starts at 0
                 obs[x, y, 5] = (
-                        self.agents[agent].position[0] / (grid_world.width - 1)
+                        agent.position[0] / (grid_world.width - 1)
                 )
 
                 # Feature 7: Agent Y position (normalized)
                 # height - 1 because the Y position starts at 0
                 obs[x, y, 6] = (
-                        self.agents[agent].position[1] /
+                        agent.position[1] /
                         (grid_world.height - 1)
                 )
 
@@ -255,29 +246,27 @@ class PartialObservation(ObservationStrategy):
             (2*obs_range+1, 2*obs_range+1).
     """
 
-    def __init__(self, agents, obs_range=1):
+    def __init__(self, obs_range=1):
         """
         Create the partial observation strategy.
 
         Args:
-            agents (dict): A dictionary mapping the gymnasium IDs of the agents
-                that will receive observations to their instances
-                (e.g. Dict[AgentID, Agent])
             obs_range (int, optional): The number of cells visible in each
                 direction from the agent.
         """
-        super().__init__(agents)
+        super().__init__()
         self.obs_range = obs_range
         self.observation_shape = (2 * obs_range + 1, 2 * obs_range + 1,
                                   FEATURES_PER_CELL)
 
-    def observation_space(self, agent):
+    def observation_space(self, agent: Agent):
         """
         Define the observation space as a Box with dimensions based on the
         range.
 
         Args:
-            agent (str): The agent for which to define the observation space.
+            agent (:py:class:`.Agent`): The agent for which to define the
+                observation space.
 
         Returns:
             gym.spaces.Box: A box space with dimensions based on the visibility
@@ -286,7 +275,7 @@ class PartialObservation(ObservationStrategy):
         return Box(low=0, high=1, shape=self.observation_shape,
                    dtype=np.float32)
 
-    def get_observation(self, grid_world, agent):
+    def get_observation(self, grid_world, agent: Agent):
         """
         Generate a partial observation centered on the agent's position.
 
@@ -295,14 +284,15 @@ class PartialObservation(ObservationStrategy):
 
         Args:
             grid_world (:py:class:`.WorldGrid`): The current state of the grid.
-            agent (str): The agent for which to generate the observation.
+            agent (:py:class:`.Agent`): The agent for which to generate the
+                observation.
 
         Returns:
             numpy.ndarray: A 3D array containing the visible portion of the
                 grid with all features.
         """
         obs = np.zeros(self.observation_shape, dtype=np.float32)
-        agent_x, agent_y = self.agents[agent].position
+        agent_x, agent_y = agent.position
 
         for i in range(self.observation_shape[0]):
             for j in range(self.observation_shape[1]):

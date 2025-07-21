@@ -1,6 +1,6 @@
 init_method: "random"
 
-# Common parameters for init_random
+# Common parameters for every init method
 min_pollution: 0
 max_pollution: 100
 pollution_increment: 1

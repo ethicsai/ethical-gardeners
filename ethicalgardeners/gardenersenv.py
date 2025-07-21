@@ -18,25 +18,13 @@ import numpy as np
 from pettingzoo import AECEnv
 # import agent_selector or AgentSelector depending on python version
 try:
-    # Python 3.12 or earlier
-    from pettingzoo.utils.agent_selector import AgentSelector
-    use_function = True
+    # Python 3.13+
+    from pettingzoo.utils.agent_selector import (
+        AgentSelector as agent_selector)
 except ImportError:
-    try:
-        # Python 3.13 or later
-        from pettingzoo.utils import agent_selector
-        use_function = False
-    except ImportError:
-        raise ImportError("Cannot agent_selector or AgentSelector")
+    # Python 3.12 and below
+    from pettingzoo.utils import agent_selector
 from gymnasium.spaces import Discrete
-
-from ethicalgardeners.action import create_action_enum
-from ethicalgardeners.worldgrid import WorldGrid
-from ethicalgardeners.actionhandler import ActionHandler
-from ethicalgardeners.observation import TotalObservation, PartialObservation
-from ethicalgardeners.rewardfunctions import RewardFunctions
-from ethicalgardeners.metricscollector import MetricsCollector
-from ethicalgardeners.renderer import ConsoleRenderer, GraphicalRenderer
 
 
 class GardenersEnv(AECEnv):
@@ -51,10 +39,8 @@ class GardenersEnv(AECEnv):
 
         Attributes:
             metadata (dict): Environment metadata for PettingZoo compatibility.
-            config (object): Configuration object containing all environment
-                settings.
-            random_generator (np.random.RandomState): Random number generator
-                for reproducible experiments.
+            random_generator (:py:class:`np.random.RandomState`): Random number
+                generator for reproducible experiments.
             grid_world (:py:class:`.WorldGrid`): The simulated 2D grid world
                 environment.
             prev_grid_world (:py:class:`.WorldGrid`): Copy of the previous grid
@@ -89,7 +75,9 @@ class GardenersEnv(AECEnv):
         'name': "ethical_gardeners"
     }
 
-    def __init__(self, config):
+    def __init__(self, random_generator, grid_world, action_enum, num_iter,
+                 render_mode, action_handler, observation_strategy,
+                 reward_functions, metrics_collector, renderers):
         """
         Create the Ethical Gardeners environment.
 
@@ -97,170 +85,50 @@ class GardenersEnv(AECEnv):
         provided configuration.
 
         Args:
-            config (object): Hydra configuration object containing all
-                environment settings.
+            random_generator (:py:class:`.np.random.RandomState`): Random
+                number generator for reproducibility.
+            grid_world (:py:class:`.WorldGrid`): The grid world representing
+                the simulation environment.
+            action_enum (:py:class:`._ActionEnum`): Enumeration of possible
+                actions in the environment.
+            num_iter (int): Maximum number of iterations for the simulation.
+            render_mode (str): Rendering mode for the environment ('human' or
+                'none').
+            action_handler (:py:class:`.ActionHandler`): Handler for processing
+                agent actions.
+            observation_strategy (:py:class:`.ObservationStrategy`): Strategy
+                for generating agent observations.
+            reward_functions (:py:class:`.RewardFunctions`): Functions for
+                calculating agent rewards.
+            metrics_collector (:py:class:`.MetricsCollector`): Collector for
+                simulation metrics.
+            renderers (list): List of renderer objects for visualization.
         """
         super().__init__()
-        self.config = config
 
-        # Random generator initialization
-        self.random_generator = None
-        random_seed = config.get("random_seed", None)
-        if random_seed is not None:
-            self.random_generator = np.random.RandomState(random_seed)
+        # Set random generator
+        self.random_generator = random_generator
 
-        # Common parameters for all grid initializations
-        min_pollution = config.grid.get("min_pollution", 0)
-        max_pollution = config.grid.get("max_pollution", 100)
-        pollution_increment = config.grid.get("pollution_increment", 1)
-        collisions_on = config.grid.get("collisions_on", True)
-        num_seeds_returned = config.grid.get("num_seeds_returned", 1)
-        flowers_data = config.grid.get("flowers_data", None)
-
-        # Grid initialization
-        grid_init_method = config.grid.get("init_method", "random")
-
-        if grid_init_method == "from_file":
-            file_path = config.grid.file_path
-            self.grid_world = WorldGrid.init_from_file(
-                file_path=file_path
-            )
-
-        elif grid_init_method == "from_code":
-            grid_config = config.grid.get("config", None)
-
-            if grid_config is not None:
-                if "min_pollution" in grid_config:
-                    min_pollution = grid_config["min_pollution"]
-                if "max_pollution" in grid_config:
-                    max_pollution = grid_config["max_pollution"]
-                if "pollution_increment" in grid_config:
-                    pollution_increment = grid_config["pollution_increment"]
-                if "collisions_on" in grid_config:
-                    collisions_on = grid_config["collisions_on"]
-                if "num_seeds_returned" in grid_config:
-                    num_seeds_returned = grid_config["num_seeds_returned"]
-                if "flowers_data" in grid_config:
-                    flowers_data = grid_config["flowers_data"]
-
-                self.grid_world = WorldGrid.init_from_code(
-                    grid_config=grid_config
-                )
-            else:
-                self.grid_world = WorldGrid.init_from_code()
-
-        elif grid_init_method == "random":
-            width = config.grid.get("width", 10)
-            height = config.grid.get("height", 10)
-            obstacles_ratio = config.grid.get("obstacles_ratio", 0.2)
-            nb_agent = config.grid.get("nb_agent", 2)
-
-            self.grid_world = WorldGrid.init_random(
-                width=width,
-                height=height,
-                random_generator=self.random_generator,
-                obstacles_ratio=obstacles_ratio,
-                nb_agent=nb_agent
-            )
-
-        else:
-            self.grid_world = WorldGrid.init_random()
-
-        # Set the grid properties
-        self.grid_world.min_pollution = min_pollution
-        self.grid_world.max_pollution = max_pollution
-        self.grid_world.pollution_increment = pollution_increment
-        self.grid_world.collisions_on = collisions_on
-        self.grid_world.num_seeds_returned = num_seeds_returned
-        if flowers_data is not None:
-            self.grid_world.flowers_data = flowers_data
-
-        # Create the action space from the number of flowers types
-        num_flower_types = len(self.grid_world.flowers_data)
-        self.action_enum = create_action_enum(num_flower_types)
+        # Set the grid world
+        self.grid_world = grid_world
 
         # Set PettingZoo parameters
-        self.num_iter = config.get("num_iterations", 1000)
-        self.render_mode = config.get("render_mode", "none")
+        self.num_iter = num_iter
+        self.render_mode = render_mode
         self.possible_agents = [f"agent_{i}" for i in
                                 range(len(self.grid_world.agents))]
         self.agents = {self.possible_agents[i]: self.grid_world.agents[i] for i
                        in range(len(self.grid_world.agents))}
 
-        # Initialise ActionHandler
-        self.action_handler = ActionHandler(
-            self.grid_world,
-            self.action_enum
-        )
+        # Set environment components
+        self.action_enum = action_enum
+        self.action_handler = action_handler
+        self.observation_strategy = observation_strategy
+        self.reward_functions = reward_functions
+        self.metrics_collector = metrics_collector
+        self.renderers = renderers
 
-        # Initialise observation strategy
-        observation_type = config.observation.get("type", "total")
-        if observation_type == "total":
-            self.observation_strategy = TotalObservation(
-                self.grid_world,
-                self.agents
-            )
-        elif observation_type == "partial":
-            obs_range = config.observation.get("range", 1)
-            self.observation_strategy = PartialObservation(
-                self.agents,
-                obs_range
-            )
-        else:
-            self.observation_strategy = TotalObservation(
-                self.grid_world,
-                self.agents
-            )
-
-        # Initialise reward functions
-        self.reward_functions = RewardFunctions(
-            self.action_enum
-        )
-
-        # Initialise metrics collector
-        metrics_out_dir = config.metrics.get("out_dir_path", "./metrics")
-        export_metrics = config.metrics.get("export_on", False)
-        send_metrics = config.metrics.get("send_on", False)
-        self.metrics_collector = MetricsCollector(
-            metrics_out_dir,
-            export_metrics,
-            send_metrics
-        )
-
-        # Initialise renderer
-        self.renderers = []
-
-        if config.renderer.graphical.get("enabled", False):
-            post_analysis_on = config.renderer.graphical.get(
-                "post_analysis_on", False
-            )
-            out_dir = config.renderer.graphical.get("out_dir_path", "./videos")
-            cell_size = config.renderer.graphical.get("cell_size", 50)
-            colors = config.renderer.graphical.get("colors", None)
-
-            graphical_renderer = GraphicalRenderer(
-                cell_size=cell_size,
-                colors=colors,
-                post_analysis_on=post_analysis_on,
-                out_dir_path=out_dir,
-            )
-            self.renderers.append(graphical_renderer)
-
-        if config.renderer.console.get("enabled", False):
-            post_analysis_on = config.renderer.console.get(
-                "post_analysis_on",  False
-            )
-            out_dir = config.renderer.console.get("out_dir_path", "./videos")
-            characters = config.renderer.console.get("characters", None)
-
-            console_renderer = ConsoleRenderer(
-                characters=characters,
-                post_analysis_on=post_analysis_on,
-                out_dir_path=out_dir,
-
-            )
-            self.renderers.append(console_renderer)
-
+        # Initialize renderers
         for renderer in self.renderers:
             renderer.init(self.grid_world)
 
@@ -295,7 +163,8 @@ class GardenersEnv(AECEnv):
             gymnasium.spaces.Space: The observation space for the specified
                 agent.
         """
-        return self.observation_strategy.observation_space(agent_id)
+        agent = self.agents[agent_id]
+        return self.observation_strategy.observation_space(agent)
 
     def reset(self, seed=None, options=None):
         """
@@ -316,12 +185,13 @@ class GardenersEnv(AECEnv):
                 - infos (dict): Additional information for all agents.
         """
         # Initialise the agent selector
-        # Selects the agent selector class based on the Python version
-        if use_function:
-            self._agent_selector = AgentSelector(self.possible_agents)
-        else:
-            self._agent_selector = agent_selector(self.possible_agents)
+        self._agent_selector = agent_selector(self.possible_agents)
         self.agent_selection = self._agent_selector.next()
+
+        # Set the random generator if a seed is provided
+        if seed is not None:
+            self.random_generator = np.random.RandomState(seed)
+            self.grid_world.random_generator = self.random_generator
 
         # Reset metrics
         self.metrics_collector.reset_metrics()
@@ -408,8 +278,7 @@ class GardenersEnv(AECEnv):
             "observation": self._get_observations(agent_id),
             "action_mask": agent.action_mask
         }
-        rewards = self._get_rewards(agent_id, self.grid_world,
-                                    self.prev_grid_world, action_enum_value)
+        rewards = self._get_rewards(agent_id, action_enum_value)
         self.rewards[agent_id] = rewards['total']
         self.infos[agent_id] = self._get_info(agent_id, rewards)
 
@@ -491,10 +360,11 @@ class GardenersEnv(AECEnv):
         Returns:
             object: The observation for the specified agent.
         """
+        agent = self.agents[agent_id]
         return self.observation_strategy.get_observation(self.grid_world,
-                                                         agent_id)
+                                                         agent)
 
-    def _get_rewards(self, agent_id, grid_world, prev_grid_world, action):
+    def _get_rewards(self, agent_id, action):
         """
         Calculate the rewards for a specific agent.
 
@@ -504,22 +374,25 @@ class GardenersEnv(AECEnv):
 
         Args:
             agent_id (str): The ID of the agent to calculate rewards for.
-            grid_world (:py:class:`.WorldGrid`): The current state of the grid
-                world.
-            prev_grid_world (:py:class:`.WorldGrid`): The previous state of the
-                grid world.
             action (:py:class:`._ActionEnum`): The action taken by the agent.
 
         Returns:
-            dict: Dictionary of reward components and total reward.
+            dict: Dictionary of reward components and total reward with the
+                following keys:
+
+                - 'total': The mono-objective reward for the agent. Computed
+                  as the average of all reward components.
+                - 'ecology': The ecological reward component.
+                - 'wellbeing': The wellbeing reward component.
+                - 'biodiversity': The biodiversity reward component.
         """
         # get the agent from its ID
         agent = self.agents[agent_id]
 
         # Compute the rewards
         rewards = self.reward_functions.compute_reward(
-            prev_grid_world,
-            grid_world,
+            self.prev_grid_world,
+            self.grid_world,
             agent,
             action
         )
@@ -538,7 +411,11 @@ class GardenersEnv(AECEnv):
             rewards (dict): The reward components for the agent.
 
         Returns:
-            dict: Additional information for the specified agent.
+            dict: Additional information for the specified agent with the
+                following keys:
+
+                - 'rewards': The reward dict for the agent containing each
+                  reward component and the total reward.
         """
         return {
             'rewards': rewards,
@@ -553,11 +430,18 @@ class GardenersEnv(AECEnv):
 
         Returns:
             tuple: A tuple containing:
-                - observation (dict): The current observation.
+                - observation (dict): The current observation. The dictionary
+                  contains:
+
+                  - observation (:py:class:`.np.ndarray`): The agent's view of
+                    the environment.
+                  - action_mask (:py:class:`.np.ndarray`): Binary mask
+                    indicating valid actions.
                 - reward (float): The most recent reward.
                 - termination (bool): Whether the agent is in a terminal state.
                 - truncation (bool): Whether the episode was truncated.
-                - info (dict): Additional information.
+                - info (dict): Additional information about the agent. Refer to
+                  :py:meth:`_get_info` for details on the returned value.
         """
         agent_id = self.agent_selection
         observation = self.observations[agent_id]

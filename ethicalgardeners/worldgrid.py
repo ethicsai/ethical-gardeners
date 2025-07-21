@@ -35,7 +35,6 @@ import copy
 import numpy as np
 
 from ethicalgardeners.agent import Agent
-from ethicalgardeners.constants import DEFAULT_GRID_CONFIG
 
 
 class WorldGrid:
@@ -94,8 +93,9 @@ class WorldGrid:
                 types of flowers.
             collisions_on (bool, optional): Whether agents can occupy the same
                 cell simultaneously.
-            random_generator (np.random, optional): Custom random generator
-                instance for reproducibility. If None, uses the default random
+            random_generator (:py:class:`np.random.RandomState`, optional):
+                Custom random generator instance for reproducibility. If None,
+                uses the default random
             grid (list, optional): 2D array of Cell objects representing the
                 environment. If None, initializes an empty grid.
             agents (list, optional): List of Agent objects to place in the
@@ -151,7 +151,9 @@ class WorldGrid:
                 self.place_flower(position, flower_type, growth_stage)
 
     @classmethod
-    def init_from_file(cls, file_path):
+    def init_from_file(cls, file_path, random_generator=None, min_pollution=0,
+                       max_pollution=100, pollution_increment=1,
+                       num_seeds_returned=1, collisions_on=True):
         """
         Initialize the grid from a file.
 
@@ -162,27 +164,41 @@ class WorldGrid:
           FX_Y (ground with flower type X at growth stage Y),
           AX (ground with agent ID X)
         - Agent definitions: ID,money,seeds
-        - Flower definitions: type,price,pollution_reduction
+        - Flowers_data definitions: type,price,pollution_reduction
 
         Example::
 
             10 10
-            G G G W W G G G G G
-            G F0_2 G G G W G G G G G
-            G O G A0 W G G G G G
-            G G G G W G G G G G
-            W W W W W G G G G G
+            G G G O O G G G G G
+            G F0_2 G G G O G G G G
+            G O G A0 O G G G G G
+            G G G G O G G G G G
+            O O O O O G G G G G
             G G G G G G G G G G
             G G G G G G G G G G
             G G G G G G G G G G
             G G G G G G G G G G
             G G G G G G G G G G
             0,100,5|10|3
-            0,2,1|2|3
+            0,10,5|2|1
+            1,5,3|1|0
+            2,2,1|0
 
         Args:
             file_path (str): Path to the file containing the grid
                 configuration.
+            random_generator (:py:class:`np.random.RandomState`, optional):
+                Custom random generator instance for reproducibility.
+            min_pollution (float, optional): Minimum allowed pollution level
+                for any cell.
+            max_pollution (float, optional): Maximum allowed pollution level
+                for any cell.
+            pollution_increment (float, optional): Amount by which pollution
+                increases in empty cells.
+            num_seeds_returned (int, optional): Number of seeds returned when
+                harvesting a flower.
+            collisions_on (bool, optional): Whether agents can occupy the same
+                cell simultaneously.
         """
         with open(file_path, 'r') as f:
             lines = f.readlines()
@@ -220,7 +236,9 @@ class WorldGrid:
 
         # Create agents
         agents = []
-        agent_def_lines = lines[height + 1:height + 1 + len(agents_to_create)]
+        agent_def_start = height + 1
+        agent_def_lines = lines[agent_def_start:
+                                agent_def_start + len(agents_to_create)]
         for line in agent_def_lines:
             agent_data = line.strip().split(',')
             agent_id = int(agent_data[0])
@@ -233,7 +251,8 @@ class WorldGrid:
 
         # Create flowers_data
         flowers_data = {}
-        flower_def_lines = lines[height + 1 + len(agents_to_create):]
+        flower_def_start = height + 1 + len(agents_to_create)
+        flower_def_lines = lines[flower_def_start:]
         for line in flower_def_lines:
             flower_data = line.strip().split(',')
             flower_type = int(flower_data[0])
@@ -249,24 +268,40 @@ class WorldGrid:
         for position, (flower_type, growth_stage) in flowers_to_create.items():
             flowers.append((position, flower_type, growth_stage))
 
-        return cls(width, height, flowers_data=flowers_data, grid=grid,
-                   agents=agents, flowers=flowers)
+        return cls(width, height, min_pollution, max_pollution,
+                   pollution_increment, num_seeds_returned, collisions_on,
+                   flowers_data, random_generator, grid, agents, flowers)
 
     @classmethod
-    def init_random(cls, width=10, height=10, random_generator=None,
-                    obstacles_ratio=0.2, nb_agent=2):
+    def init_random(cls, width=10, height=10,
+                    obstacles_ratio=0.2, nb_agent=2, min_pollution=0,
+                    max_pollution=100, pollution_increment=1,
+                    num_seeds_returned=1, collisions_on=True,
+                    flowers_data=None, random_generator=None):
         """
         Initialize a random grid with obstacles and agents.
 
         Args:
             width (int, optional): Width of the grid
             height (int, optional): Height of the grid
-            random_generator (np.random, optional): Custom random generator
-                instance for reproducibility. If None, uses the default random
-                generator.
             obstacles_ratio (float, optional): Proportion of cells that will be
                 obstacles (0.0 to 1.0)
             nb_agent (int, optional): Number of agents to place on the grid
+            min_pollution (float, optional): Minimum allowed pollution level
+                for any cell.
+            max_pollution (float, optional): Maximum allowed pollution level
+                for any cell.
+            pollution_increment (float, optional): Amount by which pollution
+                increases in empty cells.
+            num_seeds_returned (int, optional): Number of seeds returned when
+                harvesting a flower.
+            collisions_on (bool, optional): Whether agents can occupy the same
+                cell simultaneously.
+            flowers_data (dict, optional): Configuration data for different
+                types of flowers.
+            random_generator (:py:class:`np.random.RandomState`, optional):
+                Custom random generator instance for reproducibility. If None,
+                uses the default random generator.
 
         Raises:
             ValueError: If there are not enough valid positions for the
@@ -311,11 +346,15 @@ class WorldGrid:
             agent = Agent(agent_positions[i])
             agents.append(agent)
 
-        return cls(width=width, height=height,
-                   random_generator=random_generator, grid=grid, agents=agents)
+        return cls(width, height, min_pollution, max_pollution,
+                   pollution_increment, num_seeds_returned, collisions_on,
+                   flowers_data, random_generator, grid, agents)
 
     @classmethod
-    def init_from_code(cls, grid_config=None):
+    def init_from_code(cls, grid_config=None, random_generator=None,
+                       width=10, height=10, min_pollution=0, max_pollution=100,
+                       pollution_increment=1, num_seeds_returned=1,
+                       collisions_on=True):
         """
         Initialize the grid directly from code using a configuration
         dictionary.
@@ -357,37 +396,53 @@ class WorldGrid:
                             'growth_stage': int},
                         ]
                     }
+
+            width (int, optional): Width of the grid.
+            height (int, optional): Height of the grid.
+            min_pollution (float, optional): Minimum allowed pollution level
+                for any cell.
+            max_pollution (float, optional): Maximum allowed pollution level
+                for any cell.
+            pollution_increment (float, optional): Amount by which pollution
+                increases in empty cells.
+            num_seeds_returned (int, optional): Number of seeds returned when
+                harvesting a flower. If -1, the system of seeds will be
+                disabled. If -2, a random number between 0 and 5 will be used.
+                If -3, the number of seeds returned will be randomly
+                determined between 0 and 5 each time a flower is harvested.
+            collisions_on (bool, optional): Whether agents can occupy the same
+                cell simultaneously.
+            random_generator (:py:class:`np.random.RandomState`, optional):
+                Custom random generator instance for reproducibility.
         """
         if grid_config is None:
             grid_config = {}
 
         # Set grid dimensions from the configuration
-        width = grid_config.get('width', DEFAULT_GRID_CONFIG['width'])
-        height = grid_config.get('height', DEFAULT_GRID_CONFIG['height'])
+        width = grid_config.get('width', width)
+        height = grid_config.get('height', height)
 
         # Get pollution limits from the configuration or use defaults
         min_pollution = grid_config.get('min_pollution',
-                                        DEFAULT_GRID_CONFIG['min_pollution'])
+                                        min_pollution)
         max_pollution = grid_config.get('max_pollution',
-                                        DEFAULT_GRID_CONFIG['max_pollution'])
+                                        max_pollution)
 
         # Get pollution increment from the configuration or use default
         pollution_increment = grid_config.get('pollution_increment',
-                                              DEFAULT_GRID_CONFIG[
-                                                  'pollution_increment'])
+                                              pollution_increment)
 
         # Get number of seeds returned from the configuration or use default
         num_seeds_returned = grid_config.get('num_seeds_returned',
-                                             DEFAULT_GRID_CONFIG[
-                                                 'num_seeds_returned'])
+                                             num_seeds_returned)
 
         # Get collisions setting from the configuration or use default
         collisions_on = grid_config.get('collisions_on',
-                                        DEFAULT_GRID_CONFIG['collisions_on'])
+                                        collisions_on)
 
         # Get flowers data from the configuration or use default
         flowers_data = grid_config.get('flowers_data',
-                                       DEFAULT_GRID_CONFIG['flowers_data'])
+                                       None)
 
         # Initialize grid with ground cells
         grid = [[Cell(CellType.GROUND) for _ in range(width)] for _ in
@@ -407,10 +462,8 @@ class WorldGrid:
         agents = []
         for agent_info in grid_config.get('agents', []):
             position = agent_info['position']
-            money = agent_info.get('money',
-                                   DEFAULT_GRID_CONFIG['agents'][0]['money'])
-            seeds = agent_info.get('seeds',
-                                   DEFAULT_GRID_CONFIG['agents'][0]['seeds'])
+            money = agent_info.get('money', 0)
+            seeds = agent_info.get('seeds', {0: 10, 1: 10, 2: 10})
             agent = Agent(position, money, seeds)
             agents.append(agent)
 
@@ -429,7 +482,8 @@ class WorldGrid:
                    num_seeds_returned=num_seeds_returned,
                    collisions_on=collisions_on,
                    flowers_data=flowers_data, grid=grid,
-                   agents=agents, flowers=flowers)
+                   agents=agents, flowers=flowers,
+                   random_generator=random_generator)
 
     def place_agent(self, agent):
         """

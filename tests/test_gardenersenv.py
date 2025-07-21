@@ -4,9 +4,8 @@ import shutil
 import tempfile
 from omegaconf import OmegaConf
 
-from ethicalgardeners.gardenersenv import GardenersEnv
-from ethicalgardeners.constants import DEFAULT_GRID_CONFIG
 from ethicalgardeners.action import create_action_enum
+from ethicalgardeners.main import make_env
 
 
 class TestGardenersEnv(unittest.TestCase):
@@ -26,7 +25,47 @@ class TestGardenersEnv(unittest.TestCase):
             'random_seed': 42,
             'grid': {
                 'init_method': 'from_code',
-                'config': DEFAULT_GRID_CONFIG
+                'config': {
+                    'width': 10,
+                    'height': 10,
+                    'min_pollution': 0.0,
+                    'max_pollution': 100.0,
+                    'pollution_increment': 1.0,
+                    'num_seeds_returned': 1,
+                    'collisions_on': True,
+                    'flowers_data': {
+                        0: {
+                            "price": 10,
+                            "pollution_reduction": [0, 0, 0, 0, 5]
+                        },
+                        1: {
+                            "price": 5,
+                            "pollution_reduction": [0, 0, 1, 3]
+                        },
+                        2: {
+                            "price": 2,
+                            "pollution_reduction": [1]
+                        }
+                    },
+                    'cells': [
+                        {'position': (4, 4), 'type': 'OBSTACLE'},
+                        {'position': (5, 5), 'type': 'OBSTACLE'},
+                        {'position': (6, 6), 'type': 'OBSTACLE'}
+                    ],
+                    'agents': [
+                        {
+                            'position': (1, 1),
+                            'money': 0.0,
+                            'seeds': {0: 10, 1: 10, 2: 10}},
+                        {
+                            'position': (9, 9),
+                            'money': 0.0,
+                            'seeds': {0: 10, 1: 10, 2: 10}
+                        }
+                    ],
+                    'flowers': [
+                    ]
+                }
             },
             'observation': {
                 'type': 'total'
@@ -45,7 +84,7 @@ class TestGardenersEnv(unittest.TestCase):
                 }
             }
         })
-        self.env = GardenersEnv(self.config)
+        self.env = make_env(self.config)
         self.env.reset()
 
     def tearDown(self):
@@ -67,7 +106,7 @@ class TestGardenersEnv(unittest.TestCase):
         self.assertIsNotNone(self.env.metrics_collector)
         self.assertEqual(len(self.env.renderers), 0)  # No renderers enabled
 
-        expected_agents = len(DEFAULT_GRID_CONFIG['agents'])
+        expected_agents = 2
         self.assertEqual(len(self.env.agents), expected_agents)
 
         # Check if action space is correct

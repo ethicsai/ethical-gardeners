@@ -77,3 +77,6 @@ frameworks.
 For more information, see the complete documentation at the `Ethical Gardeners
 documentation <https://ethicsai.github.io/ethical-gardeners/main/index.html>`_.
 """
+import gymnasium as gym
+
+gym.register('EthicalGardeners-v0', entry_point='make_env')

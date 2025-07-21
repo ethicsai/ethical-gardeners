@@ -108,8 +108,10 @@ class TestWorldGrid(unittest.TestCase):
         obstacles_ratio = 0.3
         nb_agents = 3
 
-        self.test_grid = WorldGrid.init_random(width, height, random_generator,
-                                               obstacles_ratio, nb_agents)
+        self.test_grid = WorldGrid.init_random(
+            width, height, obstacles_ratio, nb_agents,
+            random_generator=random_generator
+            )
 
         # Check grid dimensions
         self.assertEqual(self.test_grid.width, width)
