@@ -96,12 +96,7 @@ class MetricsCollector:
         self._run_id = None  # Unique identifier for the run
 
         if export_on or send_on:
-            try:
-                import time
-            except ImportError:
-                raise ImportError(
-                    "Error while importing time module. "
-                )
+            import time
 
             self._run_id = int(time.time())
 
@@ -149,20 +144,14 @@ class MetricsCollector:
                 if cell.pollution is not None:
                     self.metrics["avg_pollution_percent"] += cell.pollution
                     num_cells += 1
+                    if (cell.pollution * 100 / max_pollution) > 25:
+                        self.metrics["num_cells_pollution_above_25"] += 1
+                    if (cell.pollution * 100 / max_pollution) > 50:
+                        self.metrics["num_cells_pollution_above_50"] += 1
+                    if (cell.pollution * 100 / max_pollution) > 75:
+                        self.metrics["num_cells_pollution_above_75"] += 1
                     if (cell.pollution*100/max_pollution) > 90:
                         self.metrics["num_cells_pollution_above_90"] += 1
-                        self.metrics["num_cells_pollution_above_75"] += 1
-                        self.metrics["num_cells_pollution_above_50"] += 1
-                        self.metrics["num_cells_pollution_above_25"] += 1
-                    elif (cell.pollution*100/max_pollution) > 75:
-                        self.metrics["num_cells_pollution_above_75"] += 1
-                        self.metrics["num_cells_pollution_above_50"] += 1
-                        self.metrics["num_cells_pollution_above_25"] += 1
-                    elif (cell.pollution*100/max_pollution) > 50:
-                        self.metrics["num_cells_pollution_above_50"] += 1
-                        self.metrics["num_cells_pollution_above_25"] += 1
-                    elif (cell.pollution*100/max_pollution) > 25:
-                        self.metrics["num_cells_pollution_above_25"] += 1
 
         if len(grid_world.grid) > 0:
             self.metrics["avg_pollution_percent"] /= num_cells
@@ -207,17 +196,12 @@ class MetricsCollector:
         run of the program, and metrics are appended to this file at each call.
         """
         if self.export_on:
+            import os
             try:
                 import csv
             except ImportError:
                 raise ImportError(
                     "Error while importing csv module. "
-                )
-            try:
-                import os
-            except ImportError:
-                raise ImportError(
-                    "Error while importing os module. "
                 )
 
             # Create output directory if it doesn't exist
@@ -260,6 +244,9 @@ class MetricsCollector:
             except ImportError:
                 raise ImportError(
                     "Error while importing wandb module. "
+                    "WandB is required to use send_metrics. "
+                    "Please install WandB with `pip install wandb` "
+                    "or `pip install ethicalgardeners[metrics]`"
                 )
 
             # Initialize WandB if not already done

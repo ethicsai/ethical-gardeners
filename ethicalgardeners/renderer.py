@@ -28,6 +28,7 @@ Each renderer visualizes the grid world, including:
 * Flowers and their growth stages
 * Pollution levels in each cell
 """
+import warnings
 from abc import ABC, abstractmethod
 
 from ethicalgardeners.worldgrid import CellType
@@ -47,28 +48,21 @@ class Renderer(ABC):
     pollution levels.
 
     Attributes:
-        post_analysis_on (bool): Flag indicating whether to save frames for
-            post-simulation video generation.
-        out_dir_path (str): Directory path where output files (e.g., final
-            video) will be saved. Only used when post_analysis_on is True.
+        display (bool): Flag to enable rendering. If True, the renderer will
+            display the environment.
         frames (list): Collection of rendered frames when post_analysis_on is
             True, used to generate videos after simulation completion.
     """
 
-    def __init__(self, post_analysis_on=False, out_dir_path=None):
+    def __init__(self, display=False):
         """
         Create the renderer.
 
         Args:
-            post_analysis_on (bool, optional): Flag to enable saving frames for
-                post-simulation video generation. Defaults to False.
-            out_dir_path (str, optional): Directory path where output files
-                will be saved. Required if post_analysis_on is True. Defaults
-                to videos.
+            display (bool, optional): Flag to enable rendering. If True, the
+                renderer will display the environment. Defaults to False.
         """
-        self.post_analysis_on = post_analysis_on
-        self.out_dir_path = out_dir_path if post_analysis_on else "videos"
-        self.frames = []
+        self.display = display
 
     def init(self, grid_world):
         """
@@ -100,6 +94,7 @@ class Renderer(ABC):
         """
         pass
 
+    @abstractmethod
     def display_render(self):
         """
         Display the rendered frame in the rendering window.
@@ -142,10 +137,6 @@ class ConsoleRenderer(Renderer):
             * 'empty': ' ' (space) - Empty ground cell
             * 'plant': 'F' - Cell with a flower
             * 'agent': 'A' - Cell with an agent
-        post_analysis_on (bool): Inherited from Renderer. Flag indicating
-            whether to save frames for post-simulation video generation.
-        out_dir_path (str): Inherited from Renderer. Directory path where
-            output files will be saved when post_analysis_on is True.
         frames (list): Inherited from Renderer. Collection of rendered frames
             for video generation when post_analysis_on is True.
         _run_id (int): Unique identifier for the run, used to name output files
@@ -158,8 +149,7 @@ class ConsoleRenderer(Renderer):
             ID to the Agent instance.
     """
 
-    def __init__(self, characters=None, post_analysis_on=False,
-                 out_dir_path=None):
+    def __init__(self, characters=None, display=False):
         """
         Create the console renderer.
 
@@ -168,31 +158,16 @@ class ConsoleRenderer(Renderer):
                 their ASCII character representations. Defaults to a basic set
                 with ' ' for empty cells, 'O' for obstacles, 'F' for flowers,
                 and 'A' for agents.
-            post_analysis_on (bool, optional): Flag to enable saving frames for
-                post-simulation video generation. Defaults to False.
-            out_dir_path (str, optional): Directory path where output files
-                will be saved. Required if post_analysis_on is True. Defaults
-                to None.
+            display (bool, optional): Flag to enable rendering. If True, the
+                renderer will display the environment in the console.
         """
-        super().__init__(post_analysis_on, out_dir_path)
+        super().__init__(display)
         self.characters = characters if characters else {
             'ground': ' ',
             'obstacle': 'O',
             'flower': 'F',
             'agent': 'A'
         }
-
-        self._run_id = None  # Unique identifier for the run
-
-        if post_analysis_on:
-            try:
-                import time
-            except ImportError:
-                raise ImportError(
-                    "Error while importing time module. "
-                )
-
-            self._run_id = int(time.time())
 
         self._grid_world = None
         self._agents = None
@@ -255,27 +230,6 @@ class ConsoleRenderer(Renderer):
                 row.append('|')  # Separator for cells
             self.grid_representation.append(''.join(row))
 
-        # if post_analysis_on is True, we will create a frame for video export
-        if self.post_analysis_on:
-            try:
-                import pygame
-            except ImportError:
-                raise ImportError(
-                    "Error while importing pygame. "
-                )
-            # Create a temporary graphical renderer to capture the frame
-            temp_renderer = GraphicalRenderer(post_analysis_on=False)
-            temp_renderer.init(grid_world)
-            temp_renderer.render(grid_world, agents)
-
-            # Capture the current frame from the Pygame window and store it
-            frame = pygame.surfarray.array3d(temp_renderer.window)
-            frame = frame.swapaxes(0, 1)
-            self.frames.append(frame)
-
-            # Remove the temporary renderer
-            temp_renderer.end_render()
-
     def display_render(self):
         """
         Display the rendered frame in the console.
@@ -284,61 +238,26 @@ class ConsoleRenderer(Renderer):
         the current state of the environment with all elements represented by
         their respective characters.
         """
-        # Display the grid representation in the console
-        print("\n" + "-" * (self._grid_world.width * 2 + 1))
-        print("\n".join(self.grid_representation))
-        print("\n" + "-" * (self._grid_world.width * 2 + 1))
+        if self.display:
+            # Display the grid representation in the console
+            print("\n" + "-" * (self._grid_world.width * 2 + 1))
+            print("\n".join(self.grid_representation))
+            print("\n" + "-" * (self._grid_world.width * 2 + 1))
 
-        # Display additional information about agents
-        print(f"Number of agents: {len(self._agents)}")
-        for idx, agent in self._agents.items():
-            print(
-                f"{idx}: Position={agent.position}, Money={agent.money},"
-                f" Seeds={agent.seeds}")
+            # Display additional information about agents
+            print(f"Number of agents: {len(self._agents)}")
+            for idx, agent in self._agents.items():
+                print(
+                    f"{idx}: Position={agent.position}, Money={agent.money},"
+                    f" Seeds={agent.seeds}")
 
     def end_render(self):
         """
         Finalize the rendering process.
 
-        If post_analysis_on is True, this method will create a video from the
-        collected frames by delegating to a GraphicalRenderer. For the console
-        output itself, this method doesn't need to perform any special cleanup
-        since the output has already been displayed during the simulation.
+        For ConsoleRenderer, there's no special cleanup or video generation.
         """
-        if self.post_analysis_on and self.frames:
-            try:
-                import cv2
-            except ImportError:
-                raise ImportError(
-                    "Error while importing cv2. "
-                )
-            try:
-                import os
-            except ImportError:
-                raise ImportError(
-                    "Error while importing os. "
-                )
-
-            # Create the output directory if it doesn't exist
-            os.makedirs(self.out_dir_path, exist_ok=True)
-
-            # Define the video properties based on the first frame
-            height, width, _ = self.frames[0].shape
-            output_path = os.path.join(self.out_dir_path,
-                                       f'simulation_video_{self._run_id}.mp4')
-
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            video = cv2.VideoWriter(output_path, fourcc, 10, (width, height))
-
-            # Write each frame to the video
-            for frame in self.frames:
-                # Convert the frame from RGB to BGR for OpenCV
-                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-                video.write(frame)
-
-            video.release()
-
-            print(f"Video saved at {output_path}")
+        pass
 
 
 class GraphicalRenderer(Renderer):
@@ -368,12 +287,14 @@ class GraphicalRenderer(Renderer):
             * 'obstacle': (100, 100, 100) - Gray for obstacles
         agent_colors (dict): Dictionary to store colors for agents
         flower_colors (dict): Dictionary to store colors for flowers
-        window (pygame.Surface): The Pygame surface where the environment
-            is rendered.
-        clock (pygame.time.Clock): Clock object to control rendering frame
-            rate.
-        font (pygame.font.Font): Font object for rendering text in the
-            environment (e.g., for displaying agent information).
+        pygame (:py:mod:`pygame`): Reference to Pygame module for graphical
+            rendering.
+        window (:py:class:`pygame.Surface`): The Pygame surface where the
+            environment is rendered.
+        clock (:py:class:`pygame.time.Clock`): Clock object to control
+            rendering frame rate.
+        font (:py:class:`pygame.font.Font`): Font object for rendering text in
+            the environment (e.g., for displaying agent information).
         post_analysis_on (bool): Inherited from Renderer. Flag indicating
             whether to save frames for post-simulation video generation.
         out_dir_path (str): Inherited from Renderer. Directory path where
@@ -385,7 +306,7 @@ class GraphicalRenderer(Renderer):
     """
 
     def __init__(self, cell_size=32, colors=None, post_analysis_on=False,
-                 out_dir_path=None):
+                 display=False, out_dir_path=None):
         """
         Create the graphical renderer.
 
@@ -397,20 +318,43 @@ class GraphicalRenderer(Renderer):
                 for empty cells, green for plants, and red for agents.
             post_analysis_on (bool, optional): Flag to enable saving frames for
                 post-simulation video generation. Defaults to False.
+            display (bool, optional): Flag to enable rendering. If True, the
+                renderer will display the environment in a Pygame window.
             out_dir_path (str, optional): Directory path where output files
                 will be saved. Required if post_analysis_on is True. Defaults
                 to None.
         """
-        super().__init__(post_analysis_on, out_dir_path)
+        super().__init__(display)
         self.cell_size = cell_size
         self.colors = colors if colors else {
             'background': (200, 200, 200),  # Light gray background
             'obstacle': (100, 100, 100),  # Gray for obstacles
+            'ground': (70, 255, 70),  # Green for ground cells (define the red
+            # and blue components of the displayed ground color. The green
+            # component changes dynamically based on pollution level
         }
+
+        self.post_analysis_on = post_analysis_on
+        self.out_dir_path = out_dir_path if post_analysis_on else "videos"
 
         # Dictionaries to store colors for agents and flowers
         self.agent_colors = {}
         self.flower_colors = {}
+
+        try:
+            import pygame
+            self.pygame = pygame
+        except ImportError:
+            warnings.warn(
+                "Error while importing pygame. "
+                "PyGame is required to use post_analysis_on or display the "
+                "graphical renderer. For this run, the graphical renderer will"
+                " be disabled. "
+                "Please install PyGame with `pip install pygame` "
+                "or `pip install ethicalgardeners[viz]`"
+            )
+            self.display = False
+            self.post_analysis_on = False
 
         # Create Pygame window and clock
         self.window = None
@@ -419,14 +363,11 @@ class GraphicalRenderer(Renderer):
         self._run_id = None  # Unique identifier for the run
 
         if post_analysis_on:
-            try:
-                import time
-            except ImportError:
-                raise ImportError(
-                    "Error while importing time module. "
-                )
+            import time
 
             self._run_id = int(time.time())
+
+        self.frames = []  # List to store frames for video generation
 
     def init(self, grid_world):
         """
@@ -440,30 +381,26 @@ class GraphicalRenderer(Renderer):
             grid_world (:py:class:`.WorldGrid`): The grid world environment to
                 be rendered.
         """
-        try:
-            import pygame
-        except ImportError:
-            raise ImportError(
-                "Error while importing pygame. "
+        if self.display or self.post_analysis_on:
+            self.pygame.init()
+
+            self.clock = self.pygame.time.Clock()
+
+            # Calculate window dimensions based on grid size and cell size
+            window_width = grid_world.width * self.cell_size
+            window_height = grid_world.height * self.cell_size
+
+            # Create the pygame window
+            self.window = self.pygame.display.set_mode(
+                (window_width, window_height)
             )
+            self.pygame.display.set_caption("Ethical Gardeners Simulation")
 
-        pygame.init()
+            # Create a font for displaying text
+            self.font = self.pygame.font.SysFont('Arial', 12)
 
-        self.clock = pygame.time.Clock()
-
-        # Calculate window dimensions based on grid size and cell size
-        window_width = grid_world.width * self.cell_size
-        window_height = grid_world.height * self.cell_size
-
-        # Create the pygame window
-        self.window = pygame.display.set_mode((window_width, window_height))
-        pygame.display.set_caption("Ethical Gardeners Simulation")
-
-        # Create a font for displaying text
-        self.font = pygame.font.SysFont('Arial', 12)
-
-        # Generate colors for agents and flowers
-        self._generate_colors(grid_world)
+            # Generate colors for agents and flowers
+            self._generate_colors(grid_world)
 
     def _generate_colors(self, grid_world):
         """
@@ -505,125 +442,121 @@ class GraphicalRenderer(Renderer):
             agents (dict): Dictionary mapping the agent's gymnasium ID to
                 the Agent instance.
         """
-        try:
-            import pygame
-        except ImportError:
-            raise ImportError(
-                "Error while importing pygame. "
-            )
+        if self.display or self.post_analysis_on:
+            # Fill the window with a background color
+            self.window.fill(self.colors['background'])
 
-        # Fill the window with a background color
-        self.window.fill(self.colors['background'])
+            # Draw each cell in the grid
+            for i in range(grid_world.height):
+                for j in range(grid_world.width):
+                    cell = grid_world.get_cell((i, j))
+                    cell_rect = self.pygame.Rect(
+                        j * self.cell_size,
+                        i * self.cell_size,
+                        self.cell_size,
+                        self.cell_size
+                    )
 
-        # Draw each cell in the grid
-        for i in range(grid_world.height):
-            for j in range(grid_world.width):
-                cell = grid_world.get_cell((i, j))
-                cell_rect = pygame.Rect(
-                    j * self.cell_size,
-                    i * self.cell_size,
-                    self.cell_size,
-                    self.cell_size
+                    # Determine cell color based on cell type
+                    if cell.cell_type == CellType.GROUND:
+                        # Shade ground cells based on pollution level
+                        # Darker green = more polluted
+                        # lighter green = less polluted
+                        pollution_ratio = (
+                                cell.pollution / grid_world.max_pollution)
+                        green_value = 255 - int(pollution_ratio * 110)
+                        cell_color = (
+                            self.colors['ground'][0],
+                            green_value,
+                            self.colors['ground'][2]
+                        )
+                    elif cell.cell_type == CellType.OBSTACLE:
+                        cell_color = self.colors['obstacle']
+
+                    # Draw cell
+                    self.pygame.draw.rect(self.window, cell_color, cell_rect)
+                    self.pygame.draw.rect(self.window, (0, 0, 0),
+                                          cell_rect, 1)  # Black border
+
+                    # Draw flower if present
+                    if cell.has_flower():
+                        flower = cell.flower
+                        flower_type = flower.flower_type
+
+                        # Use flower_colors dictionary to get the base color
+                        base_color = self.flower_colors.get(flower_type,
+                                                            (0, 200, 0))
+
+                        # Adjust color based on flower type and growth stage
+                        growth_ratio = (flower.current_growth_stage /
+                                        max(1, flower.num_growth_stage))
+                        flower_color = (
+                            int(base_color[0] * (0.5 + 0.5 * growth_ratio)),
+                            int(base_color[1] * (0.5 + 0.5 * growth_ratio)),
+                            int(base_color[2] * (0.5 + 0.5 * growth_ratio))
+                        )
+
+                        # Draw flower as a circle, size depends on growth stage
+                        flower_radius = int(
+                            self.cell_size * 0.3 * (0.5 + 0.5 * growth_ratio))
+                        self.pygame.draw.circle(
+                            self.window,
+                            flower_color,
+                            (j * self.cell_size + self.cell_size // 2,
+                             i * self.cell_size + self.cell_size // 2),
+                            flower_radius
+                        )
+
+                    # Draw pollution level as text if it's not None
+                    if cell.pollution is not None:
+                        pollution_text = self.font.render(
+                            f"{int(cell.pollution)}", True, (0, 0, 0)
+                        )
+                    else:
+                        pollution_text = self.font.render(
+                            "", True, (0, 0, 0)
+                        )
+
+                    self.window.blit(
+                        pollution_text,
+                        (j * self.cell_size + 2, i * self.cell_size + 2)
+                    )
+
+            # Draw agents
+            for agent_id, agent in agents.items():
+                i, j = agent.position
+                # Get the index of the agent in the grid world
+                agent_idx = grid_world.agents.index(agent)
+
+                # Use the agent_colors dictionary to get the agent's color
+                agent_color = self.agent_colors.get(agent_idx,
+                                                    self.colors.get(
+                                                        'agent', (255, 0, 0))
+                                                    )
+
+                # Draw agent as a rectangle
+                agent_rect = self.pygame.Rect(
+                    j * self.cell_size + self.cell_size // 4,
+                    i * self.cell_size + self.cell_size // 4,
+                    self.cell_size // 2,
+                    self.cell_size // 2
                 )
+                self.pygame.draw.rect(self.window, agent_color, agent_rect)
 
-                # Determine cell color based on cell type
-                if cell.cell_type == CellType.GROUND:
-                    # Shade ground cells based on pollution level
-                    # Darker green = more polluted
-                    # lighter green = less polluted
-                    pollution_ratio = cell.pollution / grid_world.max_pollution
-                    green_value = 255 - int(pollution_ratio * 110)
-                    cell_color = (
-                        self.colors['ground'][0],
-                        green_value,
-                        self.colors['ground'][2]
-                    )
-                elif cell.cell_type == CellType.OBSTACLE:
-                    cell_color = self.colors['obstacle']
-
-                # Draw cell
-                pygame.draw.rect(self.window, cell_color, cell_rect)
-                pygame.draw.rect(self.window, (0, 0, 0), cell_rect,
-                                 1)  # Black border
-
-                # Draw flower if present
-                if cell.has_flower():
-                    flower = cell.flower
-                    flower_type = flower.flower_type
-
-                    # Use the flower_colors dictionary to get the base color
-                    base_color = self.flower_colors.get(flower_type,
-                                                        (0, 200, 0))
-
-                    # Adjust color based on flower type and growth stage
-                    growth_ratio = (flower.current_growth_stage /
-                                    max(1, flower.num_growth_stage))
-                    flower_color = (
-                        int(base_color[0] * (0.5 + 0.5 * growth_ratio)),
-                        int(base_color[1] * (0.5 + 0.5 * growth_ratio)),
-                        int(base_color[2] * (0.5 + 0.5 * growth_ratio))
-                    )
-
-                    # Draw flower as a circle, size dependent on growth stage
-                    flower_radius = int(
-                        self.cell_size * 0.3 * (0.5 + 0.5 * growth_ratio))
-                    pygame.draw.circle(
-                        self.window,
-                        flower_color,
-                        (j * self.cell_size + self.cell_size // 2,
-                         i * self.cell_size + self.cell_size // 2),
-                        flower_radius
-                    )
-
-                # Draw pollution level as text if it's not None
-                if cell.pollution is not None:
-                    pollution_text = self.font.render(
-                        f"{int(cell.pollution)}", True, (0, 0, 0)
-                    )
-                else:
-                    pollution_text = self.font.render(
-                        "", True, (0, 0, 0)
-                    )
-
+                # Draw agent ID
+                id_text = self.font.render(str(agent_id), True,
+                                           (255, 255, 255))
                 self.window.blit(
-                    pollution_text,
-                    (j * self.cell_size + 2, i * self.cell_size + 2)
+                    id_text,
+                    (j * self.cell_size + self.cell_size // 2 - 4,
+                     i * self.cell_size + self.cell_size // 2 - 6)
                 )
 
-        # Draw agents
-        for agent_id, agent in agents.items():
-            i, j = agent.position
-            # Get the index of the agent in the grid world
-            agent_idx = grid_world.agents.index(agent)
-
-            # Use the agent_colors dictionary to get the color for this agent
-            agent_color = self.agent_colors.get(agent_idx,
-                                                self.colors.get('agent',
-                                                                (255, 0, 0)))
-
-            # Draw agent as a rectangle
-            agent_rect = pygame.Rect(
-                j * self.cell_size + self.cell_size // 4,
-                i * self.cell_size + self.cell_size // 4,
-                self.cell_size // 2,
-                self.cell_size // 2
-            )
-            pygame.draw.rect(self.window, agent_color, agent_rect)
-
-            # Draw agent ID
-            id_text = self.font.render(str(agent_id), True,
-                                       (255, 255, 255))
-            self.window.blit(
-                id_text,
-                (j * self.cell_size + self.cell_size // 2 - 4,
-                 i * self.cell_size + self.cell_size // 2 - 6)
-            )
-
-        # If post_analysis is enabled, save the current frame
-        if self.post_analysis_on:
-            frame = pygame.surfarray.array3d(self.window)
-            frame = frame.swapaxes(0, 1)
-            self.frames.append(frame)
+            # If post_analysis is enabled, save the current frame
+            if self.post_analysis_on:
+                frame = self.pygame.surfarray.array3d(self.window)
+                frame = frame.swapaxes(0, 1)
+                self.frames.append(frame)
 
     def display_render(self):
         """
@@ -631,19 +564,13 @@ class GraphicalRenderer(Renderer):
 
         This method updates the Pygame display with the current frame.
         """
-        try:
-            import pygame
-        except ImportError:
-            raise ImportError(
-                "Error while importing pygame. "
-            )
+        if self.display:
+            self.pygame.display.flip()
 
-        pygame.display.flip()
-
-        # Handle Pygame events to prevent window from becoming unresponsive
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.end_render()
+            # Handle Pygame events to prevent window from becoming unresponsive
+            for event in self.pygame.event.get():
+                if event.type == self.pygame.QUIT:
+                    self.end_render()
 
     def end_render(self):
         """
@@ -653,28 +580,26 @@ class GraphicalRenderer(Renderer):
         True, generates and saves a video from the collected frames using
         opencv.
         """
-        try:
-            import pygame
-        except ImportError:
-            raise ImportError(
-                "Error while importing pygame. "
-            )
+        if self.display or self.post_analysis_on:
+            self._create_video()
 
+            self.pygame.quit()
+
+    def _create_video(self):
         # If post_analysis is enabled and we have frames, create a video
         if self.post_analysis_on and self.frames:
+            import os
             try:
                 import cv2
             except ImportError:
-                raise ImportError(
+                warnings.warn(
                     "Error while importing cv2. "
+                    "OpenCV is required to use post_analysis_on. "
+                    "Please install OpenCV with `pip install cv2` "
+                    "or `pip install ethicalgardeners[viz]`"
                 )
-
-            try:
-                import os
-            except ImportError:
-                raise ImportError(
-                    "Error while importing os. "
-                )
+                print("Couldn't create video, OpenCV not installed.")
+                return
 
             # Create output directory if it doesn't exist
             os.makedirs(self.out_dir_path, exist_ok=True)
@@ -696,5 +621,3 @@ class GraphicalRenderer(Renderer):
             video.release()
 
             print(f"Video saved at {output_path}")
-
-        pygame.quit()

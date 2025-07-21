@@ -6,6 +6,7 @@ graphical:
   colors:
     background: [255, 255, 255]
     obstacle: [100, 100, 100]
+    ground: [70, 255, 70]
 console:
   enabled: true
   post_analysis_on: false
