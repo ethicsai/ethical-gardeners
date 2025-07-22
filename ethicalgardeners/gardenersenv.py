@@ -250,10 +250,6 @@ class GardenersEnv(AECEnv):
             self._was_dead_step(action)
             return
 
-        # Update action masks for all agents
-        for agent_id in self.possible_agents:
-            self.action_handler.update_action_mask(self.agents[agent_id])
-
         agent_id = self.agent_selection
         agent = self.agents[agent_id]
 
@@ -273,11 +269,17 @@ class GardenersEnv(AECEnv):
             self.grid_world.update_cell()
             self.actions_in_current_turn = 0
 
-        # Update the observations, rewards, and info for the agent
-        self.observations[agent_id] = {
-            "observation": self._get_observations(agent_id),
-            "action_mask": agent.action_mask
-        }
+        # Update observation and action mask for all agents
+        for agent_idx in self.possible_agents:
+            agentx = self.agents[agent_idx]
+            self.action_handler.update_action_mask(agentx)
+
+            self.observations[agent_idx] = {
+                "observation": self._get_observations(agent_idx),
+                "action_mask": agentx.action_mask
+            }
+
+        # Update the rewards, and info for the agent
         rewards = self._get_rewards(agent_id, action_enum_value)
         self.rewards[agent_id] = rewards['total']
         self.infos[agent_id] = self._get_info(agent_id, rewards)
@@ -433,9 +435,9 @@ class GardenersEnv(AECEnv):
                 - observation (dict): The current observation. The dictionary
                   contains:
 
-                  - observation (:py:class:`.np.ndarray`): The agent's view of
-                    the environment.
-                  - action_mask (:py:class:`.np.ndarray`): Binary mask
+                  - observation (:py:class:`numpy.ndarray`): The agent's view
+                    of the environment.
+                  - action_mask (:py:class:`numpy.ndarray`): Binary mask
                     indicating valid actions.
                 - reward (float): The most recent reward.
                 - termination (bool): Whether the agent is in a terminal state.

@@ -16,6 +16,8 @@ from enum import Enum, auto
 class _ActionEnum(Enum):
     """
     Custom enum for actions.
+
+    :meta public:
     """
 
     def __init__(self, *args, **kwargs):

@@ -185,7 +185,7 @@ class ActionHandler:
             agent (:py:class:`.Agent`): The agent for which to update the
                 action mask.
         """
-        mask = np.ones(len(self.action_enum), dtype=bool)
+        mask = np.ones(len(self.action_enum), dtype=np.int8)
         if not self.grid_world.valid_move(self.compute_new_position(
                 agent.position, self.action_enum.UP)):
             mask[self.action_enum.UP.value] = 0
