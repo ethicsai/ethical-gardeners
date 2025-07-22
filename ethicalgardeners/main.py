@@ -14,7 +14,7 @@ from ethicalgardeners.rewardfunctions import RewardFunctions
 from ethicalgardeners.worldgrid import WorldGrid
 
 
-def make_env(config):
+def make_env(config=None):
     """
     Create the environment using Hydra configuration.
 
@@ -251,7 +251,9 @@ def run_simulation(env, agent_algorithms=None):
         if termination or truncation:
             break
         else:
-            action = env.action_space(agent).sample()
+            action = env.action_space(agent).sample(
+                observations['action_mask']
+            )
 
         env.step(action)
 
