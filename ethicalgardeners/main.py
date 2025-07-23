@@ -36,18 +36,17 @@ def make_env(config=None):
                 "console": {}
             }
         })
-    else:
-        config = config
 
     # Base simulation parameters
     num_iter = config.get("num_iterations", 1000)
     render_mode = config.get("render_mode", "human")
 
     # Random generator initialization
-    random_generator = None
     random_seed = config.get("random_seed", None)
     if random_seed is not None:
         random_generator = np.random.RandomState(random_seed)
+    else:
+        random_generator = np.random.RandomState()
 
     # Common parameters for all grid initializations
     min_pollution = config.grid.get("min_pollution", 0)

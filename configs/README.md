@@ -54,7 +54,7 @@ Controls how simulation metrics are collected and exported:
 Controls how the simulation is visualized:
 
 - **`none.yaml`**: No visualization.
-- **`console.yaml`**: Text-based visualization in the terminal with customizable characters. Saves the post-analysis video to the out_dir_path directory.
+- **`console.yaml`**: Text-based visualization in the terminal with customizable characters. Appends a GraphicalRenderer to the list of renderers to generate a post-analysis video without displaying it.
 - **`graphical.yaml`**: Graphical visualization with customizable cell size and colors. Saves the post-analysis video to the out_dir_path directory.
 - **`full.yaml`**: Both console and graphical visualization simultaneously. Saves the post-analysis video to the out_dir_path directory.
 

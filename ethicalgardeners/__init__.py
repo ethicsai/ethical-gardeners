@@ -77,5 +77,8 @@ frameworks.
 For more information, see the complete documentation at the `Ethical Gardeners
 documentation <https://ethicsai.github.io/ethical-gardeners/main/index.html>`_.
 """
-from ethicalgardeners.main import make_env
-from ethicalgardeners.gardenersenv import GardenersEnv
+# Some imports that simplify external use, e.g.:
+# `from ethicalgardeners import make_env, GardenersEnv`
+# We disable Flake8 linting to avoid them being raised as false positives.
+from ethicalgardeners.main import make_env  # noqa: F401
+from ethicalgardeners.gardenersenv import GardenersEnv  # noqa: F401
