@@ -5,7 +5,7 @@ Ethical Gardeners reinforcement learning platform.
 This module implements the PettingZoo AECEnv interface, serving as the primary
 entry point of the simulation. It coordinates all simulation components:
 
-1. World representation and state management (:py:mod:`.worldgrid`)
+1. World representation and state management (:py:mod:`.gridworld`)
 2. Agent actions and interactions (:py:class:`.ActionHandler`)
 3. Observation generation (:py:mod:`.observation`)
 4. Reward calculation (:py:class:`.RewardFunctions`)
@@ -39,11 +39,11 @@ class GardenersEnv(AECEnv):
 
         Attributes:
             metadata (dict): Environment metadata for PettingZoo compatibility.
-            random_generator (:py:class:`np.random.RandomState`): Random number
-                generator for reproducible experiments.
-            grid_world (:py:class:`.WorldGrid`): The simulated 2D grid world
+            random_generator (:py:class:`numpy.random.RandomState`): Random
+                number generator for reproducible experiments.
+            grid_world (:py:class:`.GridWorld`): The simulated 2D grid world
                 environment.
-            prev_grid_world (:py:class:`.WorldGrid`): Copy of the previous grid
+            prev_grid_world (:py:class:`.GridWorld`): Copy of the previous grid
                 world state.
             action_enum (:py:class:`._ActionEnum`): Enumeration of possible
                 actions in the environment.
@@ -85,9 +85,9 @@ class GardenersEnv(AECEnv):
         provided configuration.
 
         Args:
-            random_generator (:py:class:`.np.random.RandomState`): Random
+            random_generator (:py:class:`.numpy.random.RandomState`): Random
                 number generator for reproducibility.
-            grid_world (:py:class:`.WorldGrid`): The grid world representing
+            grid_world (:py:class:`.GridWorld`): The grid world representing
                 the simulation environment.
             action_enum (:py:class:`._ActionEnum`): Enumeration of possible
                 actions in the environment.
@@ -144,7 +144,7 @@ class GardenersEnv(AECEnv):
 
         Returns:
             gymnasium.spaces.Discrete: The action space for the specified
-                agent.
+            agent.
         """
         return Discrete(len(self.action_enum))
 
@@ -161,7 +161,7 @@ class GardenersEnv(AECEnv):
 
         Returns:
             gymnasium.spaces.Space: The observation space for the specified
-                agent.
+            agent.
         """
         agent = self.agents[agent_id]
         return self.observation_strategy.observation_space(agent)
@@ -228,7 +228,7 @@ class GardenersEnv(AECEnv):
 
         return self.observations, self.infos
 
-    def step(self, action):
+    def step(self, action: int):
         """
         Execute a step in the environment for the current agent.
 
@@ -270,13 +270,13 @@ class GardenersEnv(AECEnv):
             self.actions_in_current_turn = 0
 
         # Update observation and action mask for all agents
-        for agent_idx in self.possible_agents:
-            agentx = self.agents[agent_idx]
-            self.action_handler.update_action_mask(agentx)
+        for ag_id in self.possible_agents:
+            ag = self.agents[ag_id]
+            self.action_handler.update_action_mask(ag)
 
-            self.observations[agent_idx] = {
-                "observation": self._get_observations(agent_idx),
-                "action_mask": agentx.action_mask
+            self.observations[ag_id] = {
+                "observation": self._get_observations(ag_id),
+                "action_mask": ag.action_mask
             }
 
         # Update the rewards, and info for the agent
@@ -380,8 +380,7 @@ class GardenersEnv(AECEnv):
 
         Returns:
             dict: Dictionary of reward components and total reward with the
-                following keys:
-
+            following keys:
                 - 'total': The mono-objective reward for the agent. Computed
                   as the average of all reward components.
                 - 'ecology': The ecological reward component.
@@ -414,8 +413,7 @@ class GardenersEnv(AECEnv):
 
         Returns:
             dict: Additional information for the specified agent with the
-                following keys:
-
+            following keys:
                 - 'rewards': The reward dict for the agent containing each
                   reward component and the total reward.
         """

@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock
 import random
-from ethicalgardeners.worldgrid import Cell, CellType
+from ethicalgardeners.gridworld import Cell, CellType
 
 
 class TestCell(unittest.TestCase):

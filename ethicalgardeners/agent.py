@@ -1,3 +1,8 @@
+"""
+Represents a gardener agent in the Ethical Gardeners simulation.
+"""
+
+
 class Agent:
     """
     Represents a gardener agent in the environment.
@@ -16,7 +21,7 @@ class Agent:
             money.
         action_mask (list): Action mask indicating valid actions for the agent.
     """
-    def __init__(self, position, money=0.0, seeds=None):
+    def __init__(self, position, money=0.0, seeds: dict = None):
         """
         Create a new agent.
 
@@ -46,11 +51,11 @@ class Agent:
 
         Args:
             new_position (tuple): The (x, y) coordinates of the agent in the
-            grid.
+                grid.
         """
         self.position = new_position
 
-    def can_plant(self, flower_type):
+    def can_plant(self, flower_type: int):
         """
         Check if the agent has seeds available to plant a specific flower type.
 
@@ -60,7 +65,7 @@ class Agent:
 
         Returns:
             bool: True if the agent has at least one seed of the specified type
-                of if seed count is -1 because this represenys infinite seeds.
+            or if seed count is -1 because this represents infinite seeds.
         """
 
         if self.seeds[flower_type] == -1:
@@ -69,20 +74,19 @@ class Agent:
 
         return self.seeds[flower_type] > 0
 
-    def use_seed(self, flower_type):
+    def use_seed(self, flower_type: int):
         """
         Use a seed to plant a flower of the specified type.
 
-        Decrements the seed count for the flower type and increments the
-        flowers_planted counter. If seed count is -1, this represents infinite
-        seeds and the count is not decremented.
+        Decrements the seed count for the flower type. If seed count is -1,
+        this represents infinite seeds so the count is not decremented.
 
         Args:
             flower_type (int): The type of flower to plant.
 
         Returns:
             bool: True if the seed was successfully used, False if no seeds
-                available.
+            available.
         """
         if self.can_plant(flower_type):
             if self.seeds[flower_type] != -1:
@@ -101,7 +105,7 @@ class Agent:
         """
         self.money += amount
 
-    def add_seed(self, flower_type, num_seeds):
+    def add_seed(self, flower_type: int, num_seeds):
         """
         Add seeds of a specific flower type to the agent's inventory.
 

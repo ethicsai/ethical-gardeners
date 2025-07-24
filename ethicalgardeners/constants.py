@@ -6,9 +6,10 @@ Maximum number of turns used to normalize the well-being penalty.
 
 This constant defines the maximum number of turns without income after which
 an agent receives the maximum well-being penalty (-1.0). It is used in the
-`computeWellbeingReward` function to normalize the penalty given to agents
-who haven't earned money, using the formula:
-`-min(agent.turns_without_income / MAX_PENALTY_TURNS, 1.0)`
+:py:meth:`.RewardFunctions.computeWellbeingReward` function to normalize the
+penalty given to agents who haven't earned money, using the formula:
+
+- `min(agent.turns_without_income / MAX_PENALTY_TURNS, 1.0)`
 
 The higher this value, the more lenient the system is towards agents that go
 for longer periods without harvesting and selling flowers.
@@ -31,7 +32,7 @@ the observation space. Each cell's features include:
 * Agent Y position (normalized)
 """
 
-agent_palette = [
+AGENT_PALETTE = [
     (255, 40, 40),    # Bright red
     (255, 96, 55),    # Coral
     (255, 127, 80),   # Coral red
@@ -79,7 +80,7 @@ hues, ensuring a visually distinct representation of agents in the simulation.
 Used in the :py:meth:`.GraphicalRenderer._generate_colors` method.
 """
 
-flower_palette = [
+FLOWER_PALETTE = [
     (173, 255, 47),   # Green-yellow
     (154, 205, 50),   # Yellow-green
     (0, 255, 0),      # Lime
@@ -115,4 +116,18 @@ flower_palette = [
 This palette provides a range of 30 colors for flowers, from greenish to
 yellowish hues, ensuring a visually distinct representation of flowers in the
 simulation. Used in the :py:meth:`.GraphicalRenderer._generate_colors` method
+"""
+
+MIN_SEED_RETURNS = 1
+"""
+Minimum number of seeds returned when harvesting a flower with the special
+return value of -3. This value is used in the :py:meth:`.ActionHandler.harvest`
+method to determine how many seeds an agent receives randomly.
+"""
+
+MAX_SEED_RETURNS = 5
+"""
+Maximum number of seeds returned when harvesting a flower with the special
+return value of -3. This value is used in the :py:meth:`.ActionHandler.harvest`
+method to determine how many seeds an agent receives randomly.
 """

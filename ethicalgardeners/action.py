@@ -1,12 +1,13 @@
 """
-Actions module defines the possible actions agents can take in the environment.
+The action module defines the possible actions agents can take in the
+environment.
 
 This module contains:
 
-* a function to create the Action enumeration that represents all possible
+* a function to create the _ActionEnum enumeration that represents all possible
   actions a gardener agent can perform in the environment.
-* methods to get actions that do not involve planting flowers.
-* methods to get the planting action corresponding to a specific flower type.
+* a method to get actions that do not involve planting flowers.
+* a method to get the planting action corresponding to a specific flower type.
 
 These actions are handled by the :py:class:`.ActionHandler` class.
 """
@@ -16,8 +17,6 @@ from enum import Enum, auto
 class _ActionEnum(Enum):
     """
     Custom enum for actions.
-
-    :meta public:
     """
 
     def __init__(self, *args, **kwargs):

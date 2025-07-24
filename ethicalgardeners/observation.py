@@ -5,12 +5,13 @@ Ethical Gardeners simulation.
 This module implements different observation strategies to control what
 information agents can access about the environment. It provides:
 
-1. An abstract strategy interface for implementing custom observation methods
+1. :py:class:`ObservationStrategy`: An abstract strategy interface for
+implementing custom observation methods
 
 2. Two concrete implementations:
 
-   - Complete grid visibility (:py:class:`TotalObservation`)
-   - Limited visibility range (:py:class:`PartialObservation`)
+   - :py:class:`TotalObservation`: Complete grid visibility
+   - :py:class:`PartialObservation`: Limited visibility range
 
 Observations are formatted as numpy arrays compatible with Gymnasium
 environments.
@@ -24,7 +25,7 @@ import numpy as np
 
 from ethicalgardeners.agent import Agent
 from ethicalgardeners.constants import FEATURES_PER_CELL
-from ethicalgardeners.worldgrid import CellType
+from ethicalgardeners.gridworld import CellType
 
 
 class ObservationStrategy(ABC):
@@ -61,7 +62,7 @@ class ObservationStrategy(ABC):
         Generate an observation for an agent based on the current world state.
 
         Args:
-            grid_world (:py:class:`.WorldGrid`): The current state of the grid.
+            grid_world (:py:class:`.GridWorld`): The current state of the grid.
             agent (:py:class:`.Agent`): The agent for which to generate the
                 observation.
 
@@ -101,7 +102,7 @@ class TotalObservation(ObservationStrategy):
 
     Attributes:
         observation_shape (tuple): The dimensions of the observation
-            (width, height).
+            (width, height, FEATURES_PER_CELL).
     """
 
     def __init__(self, grid_world):
@@ -109,7 +110,7 @@ class TotalObservation(ObservationStrategy):
         Create the total observation strategy.
 
         Args:
-            grid_world (:py:class:`.WorldGrid`): The grid world environment to
+            grid_world (:py:class:`.GridWorld`): The grid world environment to
                 observe.
         """
         super().__init__()
@@ -126,8 +127,8 @@ class TotalObservation(ObservationStrategy):
                 observation space.
 
         Returns:
-            gym.spaces.Box: A box space with dimensions
-                (width, height, FEATURES_PER_CELL).
+            gymnasium.spaces.Box: A box space with dimensions
+            (width, height, FEATURES_PER_CELL).
         """
         return Box(low=0, high=1, shape=self.observation_shape,
                    dtype=np.float32)
@@ -137,7 +138,7 @@ class TotalObservation(ObservationStrategy):
         Generate a complete observation of the entire grid.
 
         Args:
-            grid_world (:py:class:`.WorldGrid`): The current state of the grid.
+            grid_world (:py:class:`.GridWorld`): The current state of the grid.
             agent (:py:class:`.Agent`): The agent for which to generate the
                 observation.
 
@@ -243,7 +244,7 @@ class PartialObservation(ObservationStrategy):
         obs_range (int): The visibility range in cells around the agent's
             position.
         observation_shape (tuple): The dimensions of the observation
-            (2*obs_range+1, 2*obs_range+1).
+            (2*obs_range+1, 2*obs_range+1, FEATURES_PER_CELL).
     """
 
     def __init__(self, obs_range=1):
@@ -269,8 +270,8 @@ class PartialObservation(ObservationStrategy):
                 observation space.
 
         Returns:
-            gym.spaces.Box: A box space with dimensions based on the visibility
-                range and features per cell.
+            gymnasium.spaces.Box: A box space with dimensions based on the
+            visibility range and features per cell.
         """
         return Box(low=0, high=1, shape=self.observation_shape,
                    dtype=np.float32)
@@ -283,13 +284,13 @@ class PartialObservation(ObservationStrategy):
         Areas outside the grid boundaries appear as zeros in the observation.
 
         Args:
-            grid_world (:py:class:`.WorldGrid`): The current state of the grid.
+            grid_world (:py:class:`.GridWorld`): The current state of the grid.
             agent (:py:class:`.Agent`): The agent for which to generate the
                 observation.
 
         Returns:
             numpy.ndarray: A 3D array containing the visible portion of the
-                grid with all features.
+            grid with all features.
         """
         obs = np.zeros(self.observation_shape, dtype=np.float32)
         agent_x, agent_y = agent.position

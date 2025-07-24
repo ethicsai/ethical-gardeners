@@ -16,6 +16,10 @@ This project is under construction!
    :maxdepth: 2
    :caption: Contents:
 
+   tutorials/launch
+   tutorials/config
+   tutorials/extend
+
 .. toctree::
    :hidden:
    :maxdepth: 2

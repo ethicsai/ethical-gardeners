@@ -1,5 +1,5 @@
 import unittest
-from ethicalgardeners.worldgrid import Flower
+from ethicalgardeners.gridworld import Flower
 
 
 class TestFlower(unittest.TestCase):
