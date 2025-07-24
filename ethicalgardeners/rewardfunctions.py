@@ -15,6 +15,7 @@ This module defines some reward function used to compute rewards for agents:
 """
 from math import log
 
+from ethicalgardeners.agent import Agent
 from ethicalgardeners.constants import MAX_PENALTY_TURNS
 
 
@@ -45,7 +46,8 @@ class RewardFunctions:
         """
         self.action_enum = action_enum
 
-    def compute_reward(self, grid_world_prev, grid_world, agent, action):
+    def compute_reward(self, grid_world_prev, grid_world, agent: Agent,
+                       action):
         """
         Compute the mono-objective reward for an agent based on its action in
         the environment.
@@ -54,9 +56,9 @@ class RewardFunctions:
         rewards, normalized to a range between -1 and 1.
 
         Args:
-            grid_world_prev (:py:class:`.WorldGrid`): The grid world
+            grid_world_prev (:py:class:`.GridWorld`): The grid world
                 environment before the action.
-            grid_world (:py:class:`.WorldGrid`): The grid world environment.
+            grid_world (:py:class:`.GridWorld`): The grid world environment.
             agent (:py:class:`.Agent`): The agent performing the action.
             action (:py:attr:`action_enum`): The action performed.
 
@@ -80,7 +82,7 @@ class RewardFunctions:
                 'total': (ecology_reward + wellbeing_reward +
                           biodiversity_reward) / 3}
 
-    def compute_ecology_reward(self, grid_world_prev, grid_world, agent,
+    def compute_ecology_reward(self, grid_world_prev, grid_world, agent: Agent,
                                action):
         """
         Compute the ecological reward for an agent based on its action in the
@@ -95,15 +97,15 @@ class RewardFunctions:
 
 
         Args:
-            grid_world_prev (:py:class:`.WorldGrid`): The grid world
+            grid_world_prev (:py:class:`.GridWorld`): The grid world
                 environment before the action.
-            grid_world (:py:class:`.WorldGrid`): The grid world environment.
+            grid_world (:py:class:`.GridWorld`): The grid world environment.
             agent (:py:class:`.Agent`): The agent performing the action.
             action (:py:attr:`action_enum`): The action performed.
 
         Returns:
             float: The normalized ecological reward (between -1 and 1) for
-            planting and harvesting actions, or 0 for other actions.
+            planting and harvesting actions, 0 for other actions.
         """
         # Reward computed only for planting and harvesting actions
         if action not in self.action_enum.get_non_planting_actions():
@@ -178,8 +180,8 @@ class RewardFunctions:
         else:
             return 0.0
 
-    def compute_wellbeing_reward(self, grid_world_prev, grid_world, agent,
-                                 action):
+    def compute_wellbeing_reward(self, grid_world_prev, grid_world,
+                                 agent: Agent, action):
         """
         Compute the well-being reward for an agent based on its action in the
         environment.
@@ -190,13 +192,14 @@ class RewardFunctions:
         without income, normalized to a maximum penalty.
 
         Args:
-            grid_world_prev (:py:class:`.WorldGrid`): The grid world
+            grid_world_prev (:py:class:`.GridWorld`): The grid world
                 environment before the action.
-            grid_world (:py:class:`.WorldGrid`): The grid world environment.
+            grid_world (:py:class:`.GridWorld`): The grid world environment.
             agent (:py:class:`.Agent`): The agent performing the action.
             action (:py:attr:`action_enum`): The action performed.
         Returns:
-            float: The normalized well-being reward (between -1 and 1).
+            float: The normalized well-being reward (between -1 and 1) for
+            harvesting actions, a penalty for other actions.
         """
         # Reward computed only for harvesting actions
         if action == self.action_enum.HARVEST:
@@ -227,8 +230,8 @@ class RewardFunctions:
             # Calculate penalty for not earning money
             return -min(agent.turns_without_income / MAX_PENALTY_TURNS, 1.0)
 
-    def compute_biodiversity_reward(self, grid_world_prev, grid_world, agent,
-                                    action):
+    def compute_biodiversity_reward(self, grid_world_prev, grid_world,
+                                    agent: Agent, action):
         """
         Compute the biodiversity reward for an agent based on its action in the
         environment.
@@ -239,14 +242,15 @@ class RewardFunctions:
         the impact.
 
         Args:
-            grid_world_prev (:py:class:`.WorldGrid`): The grid world
+            grid_world_prev (:py:class:`.GridWorld`): The grid world
                 environment before the action.
-            grid_world (:py:class:`.WorldGrid`): The grid world environment.
+            grid_world (:py:class:`.GridWorld`): The grid world environment.
             agent (:py:class:`.Agent`): The agent performing the action.
             action (:py:attr:`action_enum`): The action performed.
 
         Returns:
-            float: The normalized biodiversity reward (between -1 and 1).
+            float: The normalized biodiversity reward (between -1 and 1) for
+            planting actions, 0 for other actions.
         """
         if action in self.action_enum.get_non_planting_actions():
             return 0.0

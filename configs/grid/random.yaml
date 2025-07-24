@@ -4,7 +4,7 @@ init_method: "random"
 min_pollution: 0
 max_pollution: 100
 pollution_increment: 1
-num_seeds_returned: 1
+num_seeds_returned: -3
 collisions_on: true
 flowers_data:
   0:

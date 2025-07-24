@@ -10,9 +10,11 @@ This module enables monitoring of simulation runs by:
 
 The metrics tracked include:
 
+* Current simulation step
 * Flower planted and harvested statistics (overall and per-agent)
 * Pollution levels across the environment
 * Agent rewards and accumulated rewards
+* Currently selected agent
 
 The module is designed to be configurable, allowing users to enable or disable
 metrics export and sending based on their research requirements.
@@ -100,7 +102,7 @@ class MetricsCollector:
 
             self._run_id = int(time.time())
 
-    def update_metrics(self, grid_world, rewards, agent_selection):
+    def update_metrics(self, grid_world, rewards, agent_selection: str):
         """
         Update all tracked metrics based on the current state of the
         simulation.
@@ -110,7 +112,7 @@ class MetricsCollector:
         called after each step of the simulation.
 
         Args:
-            grid_world (:py:class:`.WorldGrid`): The current state of the world
+            grid_world (:py:class:`.GridWorld`): The current state of the world
                 grid.
             rewards (dict): Dictionary of rewards for each agent.
             agent_selection (str): Currently selected agent.
@@ -266,7 +268,7 @@ class MetricsCollector:
 
         Returns:
             dict: Dictionary containing all metrics in a format ready for
-                export/logging
+            export/logging
         """
         metrics_dict = {
             'step': self.metrics["step"],

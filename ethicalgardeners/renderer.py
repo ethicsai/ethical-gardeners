@@ -8,18 +8,19 @@ rendering the grid world environment. It supports:
 1. Real-time visualization - displaying the environment as agents interact
 with it
 
-2. Post-analysis recording - saving frames during simulation for later video
-export
+2. Post-analysis recording - saving frames during the simulation for later
+video export
 
-3. Multiple rendering styles - both graphical (using Pygame) and console-based
+The module provides:
 
-The module contains:
+1. :py:class:`Renderer`: Abstract base class defining the rendering interface
 
-* :py:class:`.Renderer`: Abstract base class defining the rendering interface
-* :py:class:`.GraphicalRenderer`: Implementation using Pygame for colorful
-  interactive visualization
-* :py:class:`.ConsoleRenderer`: lightweight text-based display in terminal
-  environments
+2. Two concrete implementations:
+
+   - :py:class:`GraphicalRenderer`: Implementation using Pygame for colorful
+     interactive visualization
+   - :py:class:`ConsoleRenderer`: lightweight text-based display in terminal
+     environments
 
 Each renderer visualizes the grid world, including:
 
@@ -31,8 +32,8 @@ Each renderer visualizes the grid world, including:
 import warnings
 from abc import ABC, abstractmethod
 
-from ethicalgardeners.worldgrid import CellType
-from ethicalgardeners.constants import agent_palette, flower_palette
+from ethicalgardeners.gridworld import CellType
+from ethicalgardeners.constants import AGENT_PALETTE, FLOWER_PALETTE
 
 
 class Renderer(ABC):
@@ -50,8 +51,6 @@ class Renderer(ABC):
     Attributes:
         display (bool): Flag to enable rendering. If True, the renderer will
             display the environment.
-        frames (list): Collection of rendered frames when post_analysis_on is
-            True, used to generate videos after simulation completion.
     """
 
     def __init__(self, display=False):
@@ -72,25 +71,25 @@ class Renderer(ABC):
         the rendering environment based on the grid world properties.
 
         Args:
-            grid_world (:py:class:`.WorldGrid`): The grid world environment to
+            grid_world (:py:class:`.GridWorld`): The grid world environment to
                 be rendered.
         """
         pass
 
     @abstractmethod
-    def render(self, grid_world, agents):
+    def render(self, grid_world, agents: dict):
         """
         Render the current state of the grid world.
 
         This method visualizes the current state of the environment, including
-        the grid cells, agents, flowers, and pollution levels. If
-        post_analysis_on is True, it also saves the current frame for later
-        video generation.
+        the grid cells, agents, flowers, and pollution levels. It should be
+        implemented in concrete renderers.
 
         Args:
-            grid_world (:py:class:`.WorldGrid`): The current state of the world
+            grid_world (:py:class:`.GridWorld`): The current state of the world
                 grid to render.
-            agents (list): List of Agent objects to render in the environment.
+            agents (dict): Dictionary mapping the agent's gymnasium ID to
+                the Agent instance of the agents to display.
         """
         pass
 
@@ -100,19 +99,16 @@ class Renderer(ABC):
         Display the rendered frame in the rendering window.
 
         This method is called to update the rendering window with the current
-        frame. It should be implemented in concrete renderers that support
-        graphical output.
+        frame. It should be implemented in concrete renderers.
         """
         pass
 
-    @abstractmethod
     def end_render(self):
         """
         Finalize the rendering process.
 
         This method is called at the end of simulation to perform cleanup tasks
-        and finalize any outputs. If post_analysis_on is True, it should
-        generate and save a video from the collected frames.
+        and finalize any outputs.
         """
         pass
 
@@ -126,26 +122,23 @@ class ConsoleRenderer(Renderer):
     solution that works in terminal environments.
 
     The renderer uses a configurable set of characters to represent different
-    elements of the environment (agents, flowers, empty cells, etc.). When
-    post-analysis is enabled, it can collaborate with GraphicalRenderer to
-    generate frames for video export.
+    elements of the environment (agents, flowers, empty cells, etc.).
 
     Attributes:
         characters (dict): Mapping of environment elements to their ASCII
             character representations. The default mapping includes:
 
-            * 'empty': ' ' (space) - Empty ground cell
-            * 'plant': 'F' - Cell with a flower
+            * 'ground': ' ' (space) - Empty ground cell
+            * 'obstacle': '#' - Cell with an obstacle
+            * 'flower': 'F' - Cell with a flower
             * 'agent': 'A' - Cell with an agent
-        frames (list): Inherited from Renderer. Collection of rendered frames
-            for video generation when post_analysis_on is True.
-        _run_id (int): Unique identifier for the run, used to name output files
-            when post_analysis_on is True.
+        display (bool): Inherited from Renderer. Flag to enable rendering. If
+            True, the renderer will display the environment in the console.
         grid_representation (list): List of strings representing the grid
             world, where each string corresponds to a row in the grid.
-        _grid_world (GridWorld, optional): The grid world environment to
+        _grid_world (GridWorld): The grid world environment to
             render.
-        _agents (dict, optional): Dictionary mapping the agent's gymnasium
+        _agents (dict): Dictionary mapping the agent's gymnasium
             ID to the Agent instance.
     """
 
@@ -156,7 +149,7 @@ class ConsoleRenderer(Renderer):
         Args:
             characters (dict, optional): Mapping of environment elements to
                 their ASCII character representations. Defaults to a basic set
-                with ' ' for empty cells, 'O' for obstacles, 'F' for flowers,
+                with ' ' for empty cells, '#' for obstacles, 'F' for flowers,
                 and 'A' for agents.
             display (bool, optional): Flag to enable rendering. If True, the
                 renderer will display the environment in the console.
@@ -164,7 +157,7 @@ class ConsoleRenderer(Renderer):
         super().__init__(display)
         self.characters = characters if characters else {
             'ground': ' ',
-            'obstacle': 'O',
+            'obstacle': '"',
             'flower': 'F',
             'agent': 'A'
         }
@@ -172,21 +165,20 @@ class ConsoleRenderer(Renderer):
         self._grid_world = None
         self._agents = None
 
-    def render(self, grid_world, agents):
+    def render(self, grid_world, agents: dict):
         """
         Render the current state of the grid world as text.
 
         This method create a text representation of the grid world, using the
         character mappings to display different elements. Each cell is
         represented by a single character followed by numbers for plants and
-        agents, with rows separated by newlines. If post_analysis_on is True,
-        it will also create a graphical frame for later video export.
+        agents, with rows separated by newlines.
 
         Args:
-            grid_world (:py:class:`.WorldGrid`): The current state of the world
+            grid_world (:py:class:`.GridWorld`): The current state of the world
                 grid to render.
             agents (dict): Dictionary mapping the agent's gymnasium ID to
-                the Agent instance.
+                the Agent instance of the agents to display.
         """
         # Store references to grid_world and agents
         self._grid_world = grid_world
@@ -205,7 +197,7 @@ class ConsoleRenderer(Renderer):
 
                 # Check cell type and update character accordingly
                 if cell.cell_type == CellType.OBSTACLE:
-                    cell_char = self.characters.get('obstacle', 'O')
+                    cell_char = self.characters.get('obstacle', '#')
 
                 # Verify if the cell contains a flower
                 if cell.has_flower():
@@ -224,7 +216,7 @@ class ConsoleRenderer(Renderer):
                 if cell.pollution is not None:
                     cell_char += f" {cell.pollution}"
                 else:
-                    cell_char += "   "
+                    cell_char += f" {' ' * len(str(grid_world.max_pollution))}"
 
                 row.append(cell_char)
                 row.append('|')  # Separator for cells
@@ -251,14 +243,6 @@ class ConsoleRenderer(Renderer):
                     f"{idx}: Position={agent.position}, Money={agent.money},"
                     f" Seeds={agent.seeds}")
 
-    def end_render(self):
-        """
-        Finalize the rendering process.
-
-        For ConsoleRenderer, there's no special cleanup or video generation.
-        """
-        pass
-
 
 class GraphicalRenderer(Renderer):
     """
@@ -278,6 +262,9 @@ class GraphicalRenderer(Renderer):
     * Pollution levels shown as color intensity
 
     Attributes:
+        display (bool): Inherited from Renderer. Flag to enable rendering. If
+            True, the renderer will display the environment in a Pygame
+            window.
         cell_size (int): The size of each cell in pixels, determining the
             overall window dimensions.
         colors (dict): Mapping of environment elements to their RGB color
@@ -285,9 +272,11 @@ class GraphicalRenderer(Renderer):
 
             * 'background': (200, 200, 200) - Light gray background
             * 'obstacle': (100, 100, 100) - Gray for obstacles
+            * 'ground': (70, 255, 70) - Green for ground cells (the green
+              component changes dynamically based on pollution level)
         agent_colors (dict): Dictionary to store colors for agents
         flower_colors (dict): Dictionary to store colors for flowers
-        pygame (:py:mod:`pygame`): Reference to Pygame module for graphical
+        pygame (:py:mod:`pygame`): Reference to the Pygame module for graphical
             rendering.
         window (:py:class:`pygame.Surface`): The Pygame surface where the
             environment is rendered.
@@ -295,12 +284,12 @@ class GraphicalRenderer(Renderer):
             rendering frame rate.
         font (:py:class:`pygame.font.Font`): Font object for rendering text in
             the environment (e.g., for displaying agent information).
-        post_analysis_on (bool): Inherited from Renderer. Flag indicating
-            whether to save frames for post-simulation video generation.
-        out_dir_path (str): Inherited from Renderer. Directory path where
-            output files will be saved when post_analysis_on is True.
-        frames (list): Inherited from Renderer. Collection of rendered frames
-            for video generation when post_analysis_on is True.
+        post_analysis_on (bool): Flag indicating whether to save frames for
+            post-simulation video generation.
+        out_dir_path (str): Directory path where output files will be saved
+            when post_analysis_on is True.
+        frames (list): Collection of rendered frames for video generation
+            when post_analysis_on is True.
         _run_id (int): Unique identifier for the run, used to name output files
             when post_analysis_on is True.
     """
@@ -314,8 +303,8 @@ class GraphicalRenderer(Renderer):
             cell_size (int, optional): The size of each cell in pixels.
                 Defaults to 32.
             colors (dict, optional): Mapping of environment elements to their
-                RGB color representations. Defaults to a basic set with white
-                for empty cells, green for plants, and red for agents.
+                RGB color representations. Defaults to a basic set with light
+                gray for background, gray for obstacles, and green for ground.
             post_analysis_on (bool, optional): Flag to enable saving frames for
                 post-simulation video generation. Defaults to False.
             display (bool, optional): Flag to enable rendering. If True, the
@@ -378,7 +367,7 @@ class GraphicalRenderer(Renderer):
         where the environment will be rendered.
 
         Args:
-            grid_world (:py:class:`.WorldGrid`): The grid world environment to
+            grid_world (:py:class:`.GridWorld`): The grid world environment to
                 be rendered.
         """
         if self.display or self.post_analysis_on:
@@ -408,25 +397,25 @@ class GraphicalRenderer(Renderer):
         predefined palettes.
 
         Args:
-            grid_world (:py:class:`.WorldGrid`): The grid world containing
+            grid_world (:py:class:`.GridWorld`): The grid world containing
                 agents and flower data
         """
         # Assign colors to agents from the predefined palette
         for i, agent in enumerate(grid_world.agents):
             # Use modulo to handle cases where there are more agents than
             # colors in the palette
-            palette_index = i % len(agent_palette)
-            self.agent_colors[i] = agent_palette[palette_index]
+            palette_index = i % len(AGENT_PALETTE)
+            self.agent_colors[i] = AGENT_PALETTE[palette_index]
 
         # Assign colors to flower types from the predefined palette
         for i, flower_type in enumerate(grid_world.flowers_data.keys()):
             # Use modulo to handle cases where there are more flower types than
             # colors
-            palette_index = i % len(flower_palette)
-            self.flower_colors[flower_type] = flower_palette[
+            palette_index = i % len(FLOWER_PALETTE)
+            self.flower_colors[flower_type] = FLOWER_PALETTE[
                 palette_index]
 
-    def render(self, grid_world, agents):
+    def render(self, grid_world, agents: dict):
         """
         Render the current state of the grid world using Pygame.
 
@@ -437,10 +426,10 @@ class GraphicalRenderer(Renderer):
         generation.
 
         Args:
-            grid_world (:py:class:`.WorldGrid`): The current state of the world
+            grid_world (:py:class:`.GridWorld`): The current state of the world
                 grid to render.
             agents (dict): Dictionary mapping the agent's gymnasium ID to
-                the Agent instance.
+                the Agent instance of the agents to display.
         """
         if self.display or self.post_analysis_on:
             # Fill the window with a background color

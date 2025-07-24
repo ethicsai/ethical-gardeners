@@ -9,8 +9,9 @@ promote ethical behaviors in reinforcement learning algorithms.
 Main Components:
 -----------------
 
-* :py:class:`.WorldGrid`: The simulation grid representing the physical
-  environment.
+* :py:class:`.GridWorld`: The simulation grid representing the physical
+  environment. It contains cells (:py:class:`.Cell`) of different types
+  (:py:class:`CellType`).
 * :py:class:`.Agent`: The gardeners who act in the environment.
 * :py:class:`.Flower`: Flowers that can be planted, grow, and reduce pollution.
 * :py:func:`.create_action_enum`: Function that dynamically create an
@@ -20,8 +21,7 @@ Main Components:
   environment.
 * :py:class:`.RewardFunctions`: Defines reward functions for agents based on
   their actions in the environment.
-* :py:mod:`.observation`: Defines how agents perceive the environment (total or
-  partial observation). Contains an interface for defining observation.
+* :py:mod:`.observation`: Defines how agents perceive the environment.
 * :py:class:`.MetricsCollector`: Tracks and exports various performance
   metrics.
 * :py:mod:`.renderer`: Display the environment state to the user.
@@ -33,29 +33,31 @@ Usage Examples:
 .. code-block:: python
 
     import hydra
-    from ethicalgardeners.gardenersenv import GardenersEnv
+    from ethicalgardeners import GardenersEnv, make_env
+    from ethicalgardeners.main import make_agent_algorithm, run_simulation
 
 
-    @hydra.main(version_base=None, config_path="..", config_name="config")
+    @hydra.main(version_base=None, config_path=os.getcwd())
     def main(config):
         # Initialise the environment with the provided configuration
-        env = GardenersEnv(config)
-        env.reset(seed=42)
+        env = make_env(config)
+
+        # Create an agent algorithm
+        agent_algorithm = make_agent_algorithm()
+
+        env.reset()
 
         # Main loop for the environment
-        for i, agent in enumerate(env.agent_iter()):
-            observations, rewards, termination, truncation, infos = env.last()
+        run_simulation(env)
 
-            if termination or truncation:
-                break
-            else:
-                # Here, add your agent's logic to choose an action
-                action =
+Launch
+------
+To run the simulation with the default configuration. After cloning the
+project, at the project root, use the following command:
 
-            env.step(action)
+.. code-block:: bash
 
-        # Close the environment
-        env.close()
+    python ethicalgardeners.main --config-dir configs --config-name config
 
 Configuration
 ------------

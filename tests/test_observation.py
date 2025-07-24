@@ -10,7 +10,7 @@ import numpy as np
 
 from ethicalgardeners.constants import FEATURES_PER_CELL
 from ethicalgardeners.observation import TotalObservation, PartialObservation
-from ethicalgardeners.worldgrid import CellType
+from ethicalgardeners.gridworld import CellType
 
 
 class TestTotalObservation(unittest.TestCase):

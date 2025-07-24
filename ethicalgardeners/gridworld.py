@@ -1,5 +1,5 @@
 """
-The WorldGrid module represents the physical environment simulation grid for
+The gridworld module represents the physical environment simulation grid for
 Ethical Gardeners.
 
 This module defines the fundamental structures of the simulated environment
@@ -25,7 +25,7 @@ the environment:
 * Plant flowers using seeds from their inventory
 * Harvest fully grown flowers for monetary value
 
-The WorldGrid provides methods to initialize the environment (from file,
+The GridWorld provides methods to initialize the environment (from file,
 randomly, or programmatically), place and manage agents and flowers,
 update environmental conditions, and validate agent actions.
 """
@@ -35,14 +35,15 @@ import copy
 import numpy as np
 
 from ethicalgardeners.agent import Agent
+from ethicalgardeners.constants import MIN_SEED_RETURNS, MAX_SEED_RETURNS
 
 
-class WorldGrid:
+class GridWorld:
     """
     Represents the physical grid world environment for the Ethical Gardeners
     simulation.
 
-    The WorldGrid manages a 2D grid of cells. It handles the flowers and agents
+    The GridWorld manages a 2D grid of cells. It handles the flowers and agents
     and manages their placement within the environment. The grid can be
     initialized from a file, randomly generated, or manually configured.
 
@@ -64,14 +65,13 @@ class WorldGrid:
             simultaneously.
         grid (list): 2D array of Cell objects representing the environment.
         agents (list): List of all Agent objects in the environment.
-        flowers (dict): Dictionary of flower's name and color organized by
-            flower type.
     """
 
     def __init__(self, width=10, height=10, min_pollution=0, max_pollution=100,
                  pollution_increment=1, num_seeds_returned=1,
-                 collisions_on=True, flowers_data=None, random_generator=None,
-                 grid=None, agents=None, flowers=None):
+                 collisions_on=True, flowers_data: dict = None,
+                 random_generator=None, grid=None, agents: list = None,
+                 flowers: list = None):
         """
         Create a new grid world environment.
 
@@ -86,14 +86,16 @@ class WorldGrid:
                 increases in empty cells.
             num_seeds_returned (int, optional): Number of seeds returned when
                 harvesting a flower. If -1, the system of seeds will be
-                disabled. If -2, a random number between 0 and 5 will be used.
-                If -3, the number of seeds returned will be randomly
-                determined between 0 and 5 each time a flower is harvested.
+                disabled. If -2, a random number between
+                :py:const:`.MIN_SEED_RETURNS` and :py:const:`.MAX_SEED_RETURNS`
+                will be used. If -3, the number of seeds returned will be
+                randomly determined between :py:const:`.MIN_SEED_RETURNS` and
+                :py:const:`.MAX_SEED_RETURNS` each time a flower is harvested.
             flowers_data (dict, optional): Configuration data for different
                 types of flowers.
             collisions_on (bool, optional): Whether agents can occupy the same
                 cell simultaneously.
-            random_generator (:py:class:`np.random.RandomState`, optional):
+            random_generator (:py:class:`numpy.random.RandomState`, optional):
                 Custom random generator instance for reproducibility. If None,
                 uses the default random
             grid (list, optional): 2D array of Cell objects representing the
@@ -126,7 +128,10 @@ class WorldGrid:
         if num_seeds_returned == -1:
             self.num_seeds_returned = None  # Seeds system disabled
         elif num_seeds_returned == -2:
-            self.num_seeds_returned = self.random_generator.randint(0, 5)
+            self.num_seeds_returned = self.random_generator.randint(
+                MIN_SEED_RETURNS,
+                MAX_SEED_RETURNS
+            )
         else:
             self.num_seeds_returned = num_seeds_returned
 
@@ -141,7 +146,6 @@ class WorldGrid:
                         f"Invalid position for agent: {agent.position}")
                 self.place_agent(agent)
 
-        self.flowers = {i: [] for i in range(len(flowers_data))}
         # Place flowers in the grid and add them to the flowers dictionary
         if flowers is not None:
             for position, flower_type, growth_stage in flowers:
@@ -164,7 +168,7 @@ class WorldGrid:
           FX_Y (ground with flower type X at growth stage Y),
           AX (ground with agent ID X)
         - Agent definitions: ID,money,seeds
-        - Flowers_data definitions: type,price,pollution_reduction
+        - Flowers_data definition: type,price,pollution_reduction
 
         Example::
 
@@ -187,7 +191,7 @@ class WorldGrid:
         Args:
             file_path (str): Path to the file containing the grid
                 configuration.
-            random_generator (:py:class:`np.random.RandomState`, optional):
+            random_generator (:py:class:`numpy.random.RandomState`, optional):
                 Custom random generator instance for reproducibility.
             min_pollution (float, optional): Minimum allowed pollution level
                 for any cell.
@@ -277,7 +281,7 @@ class WorldGrid:
                     obstacles_ratio=0.2, nb_agent=2, min_pollution=0,
                     max_pollution=100, pollution_increment=1,
                     num_seeds_returned=1, collisions_on=True,
-                    flowers_data=None, random_generator=None):
+                    flowers_data: dict = None, random_generator=None):
         """
         Initialize a random grid with obstacles and agents.
 
@@ -299,7 +303,7 @@ class WorldGrid:
                 cell simultaneously.
             flowers_data (dict, optional): Configuration data for different
                 types of flowers.
-            random_generator (:py:class:`np.random.RandomState`, optional):
+            random_generator (:py:class:`numpy.random.RandomState`, optional):
                 Custom random generator instance for reproducibility. If None,
                 uses the default random generator.
 
@@ -406,13 +410,10 @@ class WorldGrid:
             pollution_increment (float, optional): Amount by which pollution
                 increases in empty cells.
             num_seeds_returned (int, optional): Number of seeds returned when
-                harvesting a flower. If -1, the system of seeds will be
-                disabled. If -2, a random number between 0 and 5 will be used.
-                If -3, the number of seeds returned will be randomly
-                determined between 0 and 5 each time a flower is harvested.
+                harvesting a flower.
             collisions_on (bool, optional): Whether agents can occupy the same
                 cell simultaneously.
-            random_generator (:py:class:`np.random.RandomState`, optional):
+            random_generator (:py:class:`numpy.random.RandomState`, optional):
                 Custom random generator instance for reproducibility.
         """
         if grid_config is None:
@@ -485,7 +486,7 @@ class WorldGrid:
                    agents=agents, flowers=flowers,
                    random_generator=random_generator)
 
-    def place_agent(self, agent):
+    def place_agent(self, agent: Agent):
         """
         Place an agent in the grid at its current position.
 
@@ -508,7 +509,7 @@ class WorldGrid:
         cell.agent = agent
         self.agents.append(agent)
 
-    def place_flower(self, position, flower_type, growth_stage=0):
+    def place_flower(self, position, flower_type: int, growth_stage=0):
         """
         Place a flower in the grid at its specified position.
 
@@ -534,9 +535,6 @@ class WorldGrid:
 
         cell.flower = Flower(position, flower_type, self.flowers_data,
                              growth_stage)
-
-        # Add the flower to the flowers dictionary
-        self.flowers[flower_type].append(cell.flower)
 
     def remove_flower(self, position):
         """
@@ -578,7 +576,9 @@ class WorldGrid:
         Checks if a position is valid for an agent to move to.
 
         A position is valid if:
+
         1. It is within the grid boundaries
+
         2. It is not an obstacle cell
 
         Args:
@@ -600,9 +600,11 @@ class WorldGrid:
         Checks if an agent can move to a new position based on the action.
 
         A move is valid if:
+
         1. The new position is valid.
+
         2. If collisions are enabled, the new position is not occupied by
-            another agent.
+        another agent.
 
         Args:
             new_position (tuple): The new (x, y) coordinates of the agent after
@@ -634,10 +636,10 @@ class WorldGrid:
 
     def copy(self):
         """
-        Create a deep copy of the WorldGrid instance.
+        Create a deep copy of the GridWorld instance.
 
         Returns:
-            WorldGrid: A new instance of WorldGrid with the same properties.
+            GridWorld: A new instance of GridWorld with the same properties.
         """
         return copy.deepcopy(self)
 
@@ -661,16 +663,16 @@ class Cell:
 
     It can be of different types (:py:class:`CellType`). Some types can
     contain a flower (:py:class:`Flower`) and an agent (:py:class:`.Agent`).
-    It has a pollution level that evolves over time to a speed defined by
+    It can have a pollution level that evolves over time to a speed defined by
     :py:attr:`pollution_increment`.
 
     Attributes:
         cell_type (CellType): Type of the cell (ground, obstacle).
         flower (Flower): The flower present in this cell, if any.
         agent (Agent): The agent currently occupying this cell, if any.
-        pollution (float): Current pollution level of the cell.
+        pollution (float): Current pollution level of the cell, if applicable.
         pollution_increment (float): Amount by which pollution increases each
-            step if no flower in the cell.
+            step if no flower is in the cell.
 
     """
 
@@ -683,7 +685,7 @@ class Cell:
             pollution (float, optional): Initial pollution level of the cell.
                 Defaults to 50 for ground cells, None for obstacles.
             pollution_increment (float, optional): Amount by which pollution
-                increases each step if no flower in the cell. Defaults to 1.
+                increases each step if no flower is in the cell. Defaults to 1.
         """
         self.cell_type = cell_type
         self.flower = None
@@ -698,10 +700,11 @@ class Cell:
         """
         Update the pollution level of the cell based on its current state.
 
-        If the cell contains a flower, its pollution decreases by the flower's
-        pollution reduction value, down to the minimum pollution level.
-        If the cell does not contain a flower, its pollution increases by
-        the pollution increment, up to the maximum pollution level.
+        For ground cells, if the cell contains a flower, its pollution
+        decreases by the flower's pollution reduction value, down to the
+        minimum pollution level. If the cell does not contain a flower, its
+        pollution increases by the pollution increment, up to the maximum
+        pollution level.
 
         Args:
             min_pollution (float): Minimum pollution level allowed.
@@ -736,7 +739,7 @@ class Cell:
 
         Returns:
             bool: True if a flower can be planted in this cell, False
-                otherwise.
+            otherwise.
         """
         return self.cell_type == CellType.GROUND and not self.has_flower()
 
@@ -779,7 +782,8 @@ class Flower:
             starting at 0.
     """
 
-    def __init__(self, position, flower_type, flowers_data, growth_stage=0):
+    def __init__(self, position, flower_type, flowers_data: dict,
+                 growth_stage=0):
         """
         Create a new flower.
 
@@ -806,8 +810,7 @@ class Flower:
         Advance the flower to the next growth stage if not fully grown.
 
         By default, the flower grows 1 stage at each time step, up to the
-        maximum stage defined for this flower type. This method can be
-        overridden, to implement different strategies for growth.
+        maximum stage defined for this flower type.
         """
         if self.current_growth_stage < self.num_growth_stage:
             self.current_growth_stage += 1
@@ -830,6 +833,6 @@ class Flower:
 
         Returns:
             float: The amount of pollution reduced by this flower at its
-                current stage.
+            current stage.
         """
         return self.pollution_reduction[self.current_growth_stage]
