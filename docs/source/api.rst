@@ -6,3 +6,4 @@ API Reference
    :recursive:
 
    ethicalgardeners
+   ethicalgardeners.action._ActionEnum

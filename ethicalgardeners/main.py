@@ -1,3 +1,6 @@
+"""
+Main entry point for the Ethical Gardeners simulation environment.
+"""
 import os
 
 import hydra
@@ -11,7 +14,7 @@ from ethicalgardeners.metricscollector import MetricsCollector
 from ethicalgardeners.observation import TotalObservation, PartialObservation
 from ethicalgardeners.renderer import GraphicalRenderer, ConsoleRenderer
 from ethicalgardeners.rewardfunctions import RewardFunctions
-from ethicalgardeners.worldgrid import WorldGrid
+from ethicalgardeners.gridworld import GridWorld
 
 
 def make_env(config=None):
@@ -61,7 +64,7 @@ def make_env(config=None):
 
     if grid_init_method == "from_file":
         file_path = config.grid.file_path
-        grid_world = WorldGrid.init_from_file(
+        grid_world = GridWorld.init_from_file(
             file_path=file_path,
             random_generator=random_generator,
             min_pollution=min_pollution,
@@ -74,7 +77,7 @@ def make_env(config=None):
     elif grid_init_method == "from_code":
         grid_config = config.grid.get("config", None)
 
-        grid_world = WorldGrid.init_from_code(
+        grid_world = GridWorld.init_from_code(
             grid_config=grid_config,
             random_generator=random_generator,
             min_pollution=min_pollution,
@@ -90,7 +93,7 @@ def make_env(config=None):
         obstacles_ratio = config.grid.get("obstacles_ratio", 0.2)
         nb_agent = config.grid.get("nb_agent", 2)
 
-        grid_world = WorldGrid.init_random(
+        grid_world = GridWorld.init_random(
             width=width,
             height=height,
             min_pollution=min_pollution,
@@ -105,7 +108,7 @@ def make_env(config=None):
         )
 
     else:
-        grid_world = WorldGrid.init_random(
+        grid_world = GridWorld.init_random(
             random_generator=random_generator,
             min_pollution=min_pollution,
             max_pollution=max_pollution,
