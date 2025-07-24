@@ -265,7 +265,7 @@ def main(config):
     # Initialise the environment with the provided configuration
     env = make_env(config)
     # agent_algorithm = make_agent_algorithm()
-    env.reset(seed=42)
+    env.reset()
 
     # Main loop for the environment
     run_simulation(env)
