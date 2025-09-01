@@ -9,6 +9,7 @@ import hydra
 import numpy as np
 from omegaconf import OmegaConf
 
+from ethicalgardeners import algorithms
 from ethicalgardeners.action import create_action_enum
 from ethicalgardeners.actionhandler import ActionHandler
 from ethicalgardeners.gardenersenv import GardenersEnv
@@ -236,7 +237,8 @@ def make_agent_algorithm():
     return None
 
 
-def run_simulation(env, agent_algorithms=None):
+def run_simulation(env, agent_algorithms=None, deterministic=None,
+                   needs_action_mask=None, **kwargs):
     """
     Run the simulation loop for the environment.
 
@@ -248,15 +250,38 @@ def run_simulation(env, agent_algorithms=None):
         env (GardenersEnv): The environment to run the simulation in.
         agent_algorithms (list, optional): List of agent algorithms to use.
             Defaults to None, which means random actions will be taken.
+        needs_action_mask (list, optional): List of booleans indicating whether
+            each agent algorithm requires an action mask. Defaults to None.
     """
-    for i, agent in enumerate(env.agent_iter()):
+    env.reset()
+
+    if needs_action_mask is None:
+        needs_action_mask = [False for _ in env.possible_agents]
+
+    if deterministic is None:
+        deterministic = [True for _ in env.possible_agents]
+
+    for agent in env.agent_iter():
         observations, rewards, termination, truncation, infos = env.last()
+        observation, action_mask = observations.values()
 
         if termination or truncation:
             break
-        else:
+
+        if agent_algorithms is None:
             action = env.action_space(agent).sample(
-                observations['action_mask']
+                action_mask
+            )
+        else:
+            # Use the corresponding agent algorithm to determine the action
+            agent_index = env.possible_agents.index(agent)
+            action = algorithms.predict_action(
+                agent_algorithms[agent_index],
+                observation,
+                action_mask,
+                needs_action_mask=needs_action_mask[agent_index],
+                deterministic=deterministic[agent_index],
+                **kwargs
             )
 
         env.step(action)
