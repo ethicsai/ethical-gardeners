@@ -10,7 +10,7 @@ The goal is to make agents learn an ethically-aligned behaviour that includes
 and respects these considerations.
 
 Installation
------------
+------------
 
 Install the package with pip:
 
@@ -31,7 +31,7 @@ For metrics tracking (wandb):
     pip install "ethical-gardeners[metrics]"
 
 Quick Start
-----------
+-----------
 
 To run the simulation with the default configuration. After cloning the project, at the project root, use the following command:
 
@@ -55,6 +55,7 @@ For customization options, see the :doc:`tutorials/launch` tutorial.
    tutorials/launch
    tutorials/config
    tutorials/extend
+   tutorials/algorithms
 
 .. toctree::
    :hidden:
