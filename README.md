@@ -10,6 +10,15 @@ and respects these considerations.
 
 ## How to
 
+### Run
+
+To launch the simulation with default settings, use the following command in a shell, with the current
+working directory being the project root:
+
+```sh
+python ethicalgardeners/main.py --config-name config
+```
+
 ### Run tests
 
 Tests must be placed in the `tests/` folder; files must follow the `test_*.py`
@@ -40,3 +49,5 @@ Documentation has its own requirements, which can be installed with
 ```sh
 pip install -r docs/requirements.txt
 ```
+
+See the [documentation](https://ethicsai.github.io/ethical-gardeners/main/index.html>) for more details.

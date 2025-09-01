@@ -166,6 +166,33 @@ class MetricsCollector:
                 self.metrics["accumulated_rewards"][agent] = reward
         self.metrics["agent_selection"] = agent_selection
 
+    def finish_episode(self):
+        """
+        Finish the current episode.
+
+        This method finishes the current WandB run and creates a new run_id. It
+        should be called at the end of a simulation run to properly close the
+        WandB session and ensure all metrics are saved.
+        """
+        if self.send_on:
+            try:
+                import wandb
+            except ImportError:
+                raise ImportError(
+                    "Error while importing wandb module. "
+                    "WandB is required to use finish_run. "
+                    "Please install WandB with `pip install wandb` "
+                    "or `pip install ethicalgardeners[metrics]`"
+                )
+
+            if wandb.run:
+                wandb.finish()
+
+        if self.export_on or self.send_on:
+            import time
+
+            self._run_id = int(time.time())
+
     def reset_metrics(self):
         """
         Reset all metrics to their initial values.

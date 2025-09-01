@@ -9,12 +9,48 @@ gardeners tending to a grid-world garden, including ethical considerations.
 The goal is to make agents learn an ethically-aligned behaviour that includes
 and respects these considerations.
 
-This project is under construction!
+Installation
+-----------
+
+Install the package with pip:
+
+.. code-block:: bash
+
+    pip install ethical-gardeners
+
+For visualization support (pygame, opencv):
+
+.. code-block:: bash
+
+    pip install ethical-gardeners[viz]
+
+For metrics tracking (wandb):
+
+.. code-block:: bash
+
+    pip install ethical-gardeners[metrics]
+
+Quick Start
+----------
+
+To run the simulation with the default configuration. After cloning the project, at the project root, use the following command:
+
+.. code-block:: bash
+
+    python ethicalgardeners/main.py --config-name config
+
+After installing the package using pip, you can also run:
+
+.. code-block:: bash
+
+    python -m ethicalgardeners.main --config-name config
+
+For customization options, see the :doc:`tutorials/launch` tutorial.
 
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Tutorials:
 
    tutorials/launch
    tutorials/config

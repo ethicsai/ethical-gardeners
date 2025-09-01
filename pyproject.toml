@@ -56,7 +56,7 @@ docs = [
 ]
 viz = [
     "pygame>=2.0.0",
-    "opencv>=4.5.0",
+    "opencv-python>=4.5.0",
 ]
 metrics = [
     "wandb>=0.12.0",
@@ -67,8 +67,30 @@ metrics = [
 "Bug Tracker" = "https://github.com/ethicsai/ethicalgardeners/issues"
 "Documentation" = "https://ethicsai.github.io/ethical-gardeners/"
 
+# Ignore some files when building with hatchling
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/.github",
+    "/.venv",
+    "/.gitignore",
+    "/docs",
+    "/*.csv",
+    "/*.zip",
+    "/tests",
+    "/others",
+    "/wandb",
+    "/outputs",
+    "/videos",
+    "/metrics",
+    "/dist",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["ethicalgardeners"]
+
+# Also include the `config` folder, and move it to `ethicalgardeners/config` when installed.
+[tool.hatch.build.targets.wheel.force-include]
+"configs" = "ethicalgardeners/configs"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

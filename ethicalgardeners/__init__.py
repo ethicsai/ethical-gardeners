@@ -11,7 +11,7 @@ Main Components:
 
 * :py:class:`.GridWorld`: The simulation grid representing the physical
   environment. It contains cells (:py:class:`.Cell`) of different types
-  (:py:class:`CellType`).
+  (:py:class:`.CellType`).
 * :py:class:`.Agent`: The gardeners who act in the environment.
 * :py:class:`.Flower`: Flowers that can be planted, grow, and reduce pollution.
 * :py:func:`.create_action_enum`: Function that dynamically create an
@@ -34,17 +34,13 @@ Usage Examples:
 
     import hydra
     from ethicalgardeners import GardenersEnv, make_env
-    from ethicalgardeners.main import make_agent_algorithm, run_simulation
+    from ethicalgardeners.main import run_simulation, _find_config_path
 
 
-    @hydra.main(version_base=None, config_path=os.getcwd())
+    @hydra.main(version_base=None, config_path=_find_config_path())
     def main(config):
         # Initialise the environment with the provided configuration
         env = make_env(config)
-
-        # Create an agent algorithm
-        agent_algorithm = make_agent_algorithm()
-
         env.reset()
 
         # Main loop for the environment
@@ -57,10 +53,16 @@ project, at the project root, use the following command:
 
 .. code-block:: bash
 
-    python ethicalgardeners.main --config-dir configs --config-name config
+    python ethicalgardeners/main.py --config-name config
+
+After installing the package using pip, you can also run:
+
+.. code-block:: bash
+
+    python -m ethicalgardeners.main --config-name config
 
 Configuration
-------------
+-------------
 
 The environment can be customized using a YAML configuration file with Hydra.
 The default configuration file is located at `configs/config.yaml`. You can
@@ -69,7 +71,8 @@ using command line arguments when running the script:
 
 .. code-block:: bash
 
-    python ethicalgardeners.main grid=from_file observation=total metrics=full
+    python -m ethicalgardeners.main grid=from_file observation=total
+    metrics=full
 
 
 This package is designed to be used with reinforcement learning frameworks
