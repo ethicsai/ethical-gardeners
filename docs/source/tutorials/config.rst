@@ -1,7 +1,8 @@
-Tutorial: Configuration Guide for Ethical Gardeners Simulation
+Configuration Guide for Ethical Gardeners Simulation
 ==============================================================
 
-This tutorial explains how to configure the Ethical Gardeners simulation environment using Hydra. You'll learn about all available configuration options, their meanings, and how to customize your experiments.
+This tutorial explains how to configure the Ethical Gardeners simulation environment using `Hydra <https://hydra.cc/>`__.
+You'll learn about all available configuration options, their meanings, and how to customize your experiments.
 
 Hydra Configuration System Overview
 -----------------------------------
@@ -9,7 +10,7 @@ Hydra Configuration System Overview
 Ethical Gardeners uses Hydra for configuration management, providing a modular and flexible way to configure simulations without modifying code.
 
 Configuration Structure
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The configuration is organized into several groups:
 
@@ -36,7 +37,7 @@ The configuration is organized into several groups:
         └── full.yaml              # Both console and graphical
 
 Main Configuration Parameters
-----------------------------
+-----------------------------
 
 These parameters control basic simulation behavior and are defined in `config.yaml`:
 
@@ -48,12 +49,12 @@ These parameters control basic simulation behavior and are defined in `config.ya
     render_mode: "human"      # "human" for real-time display, "none" for headless
 
 Grid Configuration
------------------
+------------------
 
 The grid configuration controls the simulation environment layout, including dimensions, obstacles, agents, and flowers.
 
 Initialization Methods
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
 
 Three initialization methods are available:
 
@@ -124,7 +125,7 @@ Three initialization methods are available:
       2,2,1|0
 
 Common Grid Parameters
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
 
 These parameters apply to all initialization methods:
 
@@ -137,7 +138,7 @@ These parameters apply to all initialization methods:
     collisions_on: true        # Whether agents can occupy the same cell
 
 Flower Configuration
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 
 Flowers are defined in the `flowers_data` parameter in the grid configuration:
 
@@ -157,7 +158,7 @@ Flowers are defined in the `flowers_data` parameter in the grid configuration:
 The `pollution_reduction` list defines how much pollution is reduced at each growth stage. The length of this list determines how many growth stages the flower type has.
 
 Observation Configuration
-------------------------
+-------------------------
 
 The observation configuration determines how agents perceive the environment:
 
@@ -186,8 +187,15 @@ The observation configuration determines how agents perceive the environment:
       type: "partial"
       range: 1                 # Number of cells visible in each direction
 
+.. image:: ../images/range.png
+   :alt: Observation Range Visualization
+   :width: 500px
+   :align: center
+
+The observation is a 2*range+1 by 2*range+1 square centered on the agent.
+
 Metrics Configuration
---------------------
+---------------------
 
 The metrics configuration controls how simulation data is collected and exported:
 
@@ -206,7 +214,7 @@ Collected metrics include:
 - Currently active agent
 
 Renderer Configuration
----------------------
+----------------------
 
 Two types of renderers are available and can be used individually or together:
 
@@ -244,10 +252,10 @@ Two types of renderers are available and can be used individually or together:
                                    # The green component changes dynamically based on pollution level
 
 Advanced Configuration Examples
-------------------------------
+-------------------------------
 
 Customizing Agent Count and Initial State
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To create a simulation with a specific number of agents and initial resources:
 
@@ -311,7 +319,7 @@ custom_grid.txt:
    2,75,10|10|10
 
 Customizing Flower Types
-^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 To modify the number and properties of flower types:
 
@@ -351,3 +359,54 @@ with from_file initialization, custom_grid.txt contains:
    1,10,0|1|3|5
    2,5,1|2
    3,15,0|0|1|2|4
+
+How to modify the Configuration
+-------------------------------
+
+the configuration can be modified in two ways:
+
+1. **Create or modify YAML files**: Create custom configuration files in the appropriate directories.
+
+2. **Command-line overrides**: Override specific configuration values when launching the simulation (See the :doc:`launch` tutorial).
+
+When specifying configurations, it's important to follow Hydra's hierarchical structure with proper indentation:
+
+.. code-block:: yaml
+
+    # Example of proper configuration structure
+    grid:
+      init_method: "random"
+      width: 10
+      height: 10
+      obstacles_ratio: 0.2
+      num_seeds_returned: 2
+
+    observation:
+      type: "partial"
+      range: 1
+
+    metrics:
+      out_dir_path: "./metrics"
+      export_on: true
+      send_on: false
+
+    renderer:
+      console:
+        enabled: true
+        post_analysis_on: false
+        out_dir_path: "./videos"
+        cell_size: 50
+        colors:
+          background: [255, 255, 255]
+          obstacle: [100, 100, 100]
+      graphical:
+        enabled: false
+
+For command-line overrides, use dot notation to specify the hierarchical path:
+
+.. code-block:: bash
+
+    python -m ethical_gardeners grid.width=20 grid.height=20 observation.range=3
+
+
+For a complete example configuration, see :download:`full configuration example <../examples/full_config.yaml>`.

@@ -2,6 +2,7 @@
 Main entry point for the Ethical Gardeners simulation environment.
 """
 import os
+from importlib.resources import files
 
 import hydra
 import numpy as np
@@ -263,11 +264,42 @@ def run_simulation(env, agent_algorithms=None):
     env.close()
 
 
-@hydra.main(version_base=None, config_path=os.getcwd())
+def _find_config_path():
+    """
+    Return a valid path to the 'configs' directory prioritizing:
+    1) The CWD ('./configs')
+    2) The packaged resources ('ethicalgardeners/configs')
+    3) The GitHub repo/ZIP (the 'configs' folder next to the module)
+    """
+    # 1) The CWD
+    cwd_cfg = os.path.join(os.getcwd(), "configs")
+    if os.path.isdir(cwd_cfg):
+        return cwd_cfg
+
+    # 2) Packaged resources
+    try:
+        pkg_cfg = files("ethicalgardeners").joinpath("configs")
+        if pkg_cfg.is_dir():
+            return str(pkg_cfg)
+    except Exception:
+        pass
+
+    # 3) Source tree (repo/ZIP)
+    repo_cfg = os.path.join(os.getcwd(), "../configs")
+    if os.path.isdir(repo_cfg):
+        return repo_cfg
+
+    raise FileNotFoundError(
+        "The 'configs' directory could not be found in the CWD, "
+        "the installed package, or the source tree."
+    )
+
+
+@hydra.main(version_base=None, config_path=_find_config_path())
 def main(config):
     # Initialise the environment with the provided configuration
     env = make_env(config)
-    # agent_algorithm = make_agent_algorithm()
+
     env.reset()
 
     # Main loop for the environment

@@ -1,0 +1,106 @@
+# General configuration
+random_seed: 42
+num_iterations: 1000
+render_mode: "human"  # "none" or "human"
+
+# Grid configuration
+grid:
+  init_method: "random"  # "from_file", "random", or "from_code"
+
+  # Common parameters for init_random and init_from_file
+  min_pollution: 0
+  max_pollution: 100
+  pollution_increment: 1
+  num_seeds_returned: 1
+  collisions_on: true
+  flowers_data:
+    0:
+      price: 10
+      pollution_reduction: [ 0, 0, 0, 0, 5 ]
+    1:
+      price: 5
+      pollution_reduction: [ 0, 0, 1, 3 ]
+    2:
+      price: 2
+      pollution_reduction: [ 1 ]
+
+  # Parameters for init_random
+  width: 10
+  height: 10
+  obstacles_ratio: 0.2
+  nb_agent: 2
+
+  # Parameters for init_from_file
+  file_path: "grid_config.txt"
+
+  # Parameters for init_from_code
+  config:
+    width: 10
+    height: 10
+    min_pollution: 0
+    max_pollution: 100
+    pollution_increment: 1
+    num_seeds_returned: 1
+    collisions_on: true
+    flowers_data:
+      0:
+        price: 10
+        pollution_reduction: [0, 0, 0, 0, 5]
+      1:
+        price: 5
+        pollution_reduction: [0, 0, 1, 3]
+      2:
+        price: 2
+        pollution_reduction: [1]
+    cells:
+      - position: [ 4, 4 ]
+        type: OBSTACLE
+      - position: [ 5, 5 ]
+        type: OBSTACLE
+      - position: [ 6, 6 ]
+        type: OBSTACLE
+    agents:
+      - position: [ 1, 1 ]
+        money: 0
+        seeds:
+          0: 10
+          1: 10
+          2: 10
+      - position: [ 9, 9 ]
+        money: 0
+        seeds:
+          0: 10
+          1: 10
+          2: 10
+
+# Observation configuration
+observation:
+  type: "partial"  # "total" or "partial"
+  range: 1  # For partial observation
+
+# Metrics configuration
+metrics:
+  out_dir_path: "./metrics"
+  export_on: true
+  send_on: false
+
+# Rendering configuration
+renderer:
+  graphical:
+    enabled: true
+    post_analysis_on: false
+    out_dir_path: "./videos"
+    cell_size: 50
+    colors:
+      background: [255, 255, 255]
+      obstacle: [100, 100, 100]
+  console:
+    enabled: false
+    post_analysis_on: false
+    out_dir_path: "./videos"
+    characters:
+      ground: " "
+      wall: "#"
+      obstacle: "O"
+      agent: "A"
+      flower: "F"

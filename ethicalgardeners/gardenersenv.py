@@ -304,6 +304,12 @@ class GardenersEnv(AECEnv):
         self.truncations = {agent: self.num_moves >= self.num_iter
                             for agent in self.possible_agents}
 
+        # Check if the episode is done for all agents
+        if all(self.terminations[agent] or self.truncations[agent]
+               for agent in self.possible_agents):
+            # Finalize metrics for the episode
+            self.metrics_collector.finish_episode()
+
         # Selects the next agent
         self.agent_selection = self._agent_selector.next()
 
