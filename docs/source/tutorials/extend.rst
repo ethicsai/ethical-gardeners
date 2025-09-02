@@ -260,7 +260,7 @@ Current Structure
 ^^^^^^^^^^^^^^^^^
 
 * :py:mod:`~ethicalgardeners.action` defines the enumeration of possible actions
-* :py:mod:`~ethicalgardeners.actionhandler` implements action handling
+* :py:class:`~ethicalgardeners.actionhandler.ActionHandler` implements action handling
 
 How to Add New Actions
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -456,9 +456,9 @@ Modify the grid initialization to include the new cell type by doing one of the 
 
 Modify the config to include the new cell type:
 
-- Modify `from_code.yaml <../configs/grid/from_code.yaml>`_ to place water cell or add the ``water_ratio`` parameter in `random.yaml <../configs/grid/random.yaml>`_ if you want to place water cells in the grid.
+- Modify `from_code.yaml <https://github.com/ethicsai/ethical-gardeners/blob/main/configs/grid/from_code.yaml>`__ to place water cell or add the ``water_ratio`` parameter in `random.yaml <https://github.com/ethicsai/ethical-gardeners/blob/main/configs/grid/random.yaml>`__ if you want to place water cells in the grid.
 
-- Modify `console.yaml <../configs/observation/console.yaml>`_, `graphical.yaml <../configs/observation/graphical.yaml>`_ and `full.yaml <../configs/observation/full.yaml>`_ to include the new cell type in the characters and colors dictionaries.
+- Modify `console.yaml <https://github.com/ethicsai/ethical-gardeners/blob/main/configs/renderer/console.yaml>`__, `graphical.yaml <https://github.com/ethicsai/ethical-gardeners/blob/main/configs/renderer/graphical.yaml>`__ and `full.yaml <https://github.com/ethicsai/ethical-gardeners/blob/main/configs/renderer/full.yaml>`__ to include the new cell type in the characters and colors dictionaries.
 
 Modify the renderers to visualize the new cell type:
 
@@ -514,22 +514,6 @@ Example: Adding a Heatmap Renderer
 
        This renderer focuses on pollution levels across the grid, displaying them
        as a color-coded heatmap.
-
-       Attributes:
-           display (bool): Inherited from Renderer. Flag to enable rendering. If
-               True, the renderer will display the environment in a Matplotlib
-               window.
-           post_analysis_on (bool): Flag indicating whether to save frames for
-               post-simulation video generation..
-           out_dir_path (str): Directory path where output files will be saved
-               when post_analysis_on is True.
-           cmap (str): Matplotlib colormap name for the pollution heatmap.
-           fig (matplotlib.figure.Figure): Matplotlib figure for rendering.
-           ax (matplotlib.axes.Axes): Matplotlib axes for the heatmap.
-           frames (list): Collection of rendered frames for video generation
-               when post_analysis_on is True.
-           _run_id (int): Unique identifier for the run, used to name output files
-               when post_analysis_on is True.
        """
 
        def __init__(self, post_analysis_on=False, out_dir_path=None, cmap='coolwarm'):
@@ -563,21 +547,13 @@ Example: Adding a Heatmap Renderer
                import matplotlib.pyplot as plt
                self.plt = plt
            except ImportError:
-               warnings.warn(
-                   "Error while importing matplotlib. "
-                   "Matplotlib is required to use post_analysis_on or display the "
-                   "HeatmapRenderer. For this run, the heatmap renderer will be disabled. "
-                   "Please install matplotlib with `pip install matplotlib`"
-               )
+               warnings.warn("Cannot import matplotlib. Heatmap renderer will be disabled.")
                self.display = False
                self.post_analysis_on = False
 
        def init(self, grid_world):
            """
            Initialize the matplotlib figure based on the grid world dimensions.
-
-           Args:
-               grid_world (gridworld): The grid world environment to be rendered.
            """
            if self.display or self.post_analysis_on:
                # Create a new figure and axis
@@ -594,13 +570,11 @@ Example: Adding a Heatmap Renderer
                    vmax=grid_world.max_pollution
                )
 
+       # This method should not display anything directly; it should only prepare the data to be displayed.
+       # The actual display is handled in display_render.
        def render(self, grid_world, agents):
            """
            Render the current state of the grid world as a heatmap.
-
-           Args:
-               grid_world (gridworld): The current state of the world grid to render.
-               agents (dict): Dictionary mapping agent IDs to Agent objects.
            """
            if self.display or self.post_analysis_on:
                # Create pollution data array
@@ -626,6 +600,8 @@ Example: Adding a Heatmap Renderer
                    image = self.plt.imread(self.fig.canvas.buffer_rgba())
                    self.frames.append(image)
 
+       # Compared to render, this method is usually very simple, just updating the display with the current frame.
+       # It allows the use of a flag to disable display while still saving frames for post-analysis.
        def display_render(self):
            """
            Display the rendered frame in a matplotlib window.
@@ -633,13 +609,11 @@ Example: Adding a Heatmap Renderer
            if self.display:
                self.fig.canvas.draw()
 
-        # This method is not needed if no operations are done at the end of the rendering
+       # This method usually handles cleanup and saving of any post-analysis data so it is not needed if no
+       # operations are done at the end of the rendering.
        def end_render(self):
            """
            Finalize the rendering process and clean up resources.
-
-           If post_analysis_on is True, generates and saves a video from the
-           collected frames using opencv.
            """
            # If post_analysis is enabled and we have frames, create a video
            if self.post_analysis_on and self.frames:

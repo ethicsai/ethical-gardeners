@@ -409,4 +409,4 @@ For command-line overrides, use dot notation to specify the hierarchical path:
     python -m ethical_gardeners grid.width=20 grid.height=20 observation.range=3
 
 
-For a complete example configuration, see :download:`full configuration example <../examples/full_config.yaml>`.
+For a complete example configuration, see `full configuration example <https://github.com/ethicsai/ethical-gardeners/tree/main/docs/source/examples/full_config.yaml>`__.
