@@ -15,12 +15,12 @@ Requirements for Custom Algorithms
 
 To use your algorithm with the utility functions provided by Ethical Gardeners:
 
-1. For the :py:func:`~ethical_gardeners.algorithms.train` function, your algorithm should have:
+1. For the :py:func:`~ethicalgardeners.algorithms.train` function, your algorithm should have:
 
    - a ``learn()`` method that accepts a ``total_timesteps`` parameter
    - a ``save()`` method to persist the trained model
 
-2. For the :py:func:`~ethical_gardeners.algorithms.evaluate` and the :py:func:`~ethical_gardeners.algorithms.predict_action` functions, your algorithm should have:
+2. For the :py:func:`~ethicalgardeners.algorithms.evaluate` and the :py:func:`~ethicalgardeners.algorithms.predict_action` functions, your algorithm should have:
 
    - a ``predict()`` method that takes observations and if you want action masks and returns actions
 
@@ -41,8 +41,8 @@ multiple environments.
 For training, evaluation and prediction, you must say whether your algorithm supports action masking or not. If it does, the
 ``needs_action_mask`` parameter should be set to ``True``. If it does not, it should be set to ``False``.
 
-.. literalinclude:: /examples/trainevaluatepredict.py
+.. literalinclude:: /examples/train_evaluate_predict.py
    :language: python
-   :caption: trainevaluatepredict.py
-   :name: trainevaluatepredict
+   :caption: train_evaluate_predict.py
+   :name: train_evaluate_predict
    :encoding: utf-8
