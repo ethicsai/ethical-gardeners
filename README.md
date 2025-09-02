@@ -50,4 +50,4 @@ Documentation has its own requirements, which can be installed with
 pip install -r docs/requirements.txt
 ```
 
-See the [documentation](https://ethicsai.github.io/ethical-gardeners/main/index.html>) for more details.
+See the [documentation](https://ethicsai.github.io/ethical-gardeners/main/index.html) for more details.

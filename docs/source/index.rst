@@ -22,13 +22,13 @@ For visualization support (pygame, opencv):
 
 .. code-block:: bash
 
-    pip install ethical-gardeners[viz]
+    pip install "ethical-gardeners[viz]"
 
 For metrics tracking (wandb):
 
 .. code-block:: bash
 
-    pip install ethical-gardeners[metrics]
+    pip install "ethical-gardeners[metrics]"
 
 Quick Start
 ----------
@@ -39,7 +39,7 @@ To run the simulation with the default configuration. After cloning the project,
 
     python ethicalgardeners/main.py --config-name config
 
-After installing the package using pip, you can also run:
+After installing the package using pip, you can run instead:
 
 .. code-block:: bash
 

@@ -2,6 +2,7 @@
 Main entry point for the Ethical Gardeners simulation environment.
 """
 import os
+import sys
 from importlib.resources import files
 
 import hydra
@@ -274,12 +275,14 @@ def _find_config_path():
     # 1) The CWD
     cwd_cfg = os.path.join(os.getcwd(), "configs")
     if os.path.isdir(cwd_cfg):
+        print(f"Using config path from CWD: {cwd_cfg}")
         return cwd_cfg
 
     # 2) Packaged resources
     try:
         pkg_cfg = files("ethicalgardeners").joinpath("configs")
         if pkg_cfg.is_dir():
+            print(f"Using config path from installed package: {pkg_cfg}")
             return str(pkg_cfg)
     except Exception:
         pass
@@ -287,16 +290,36 @@ def _find_config_path():
     # 3) Source tree (repo/ZIP)
     repo_cfg = os.path.join(os.getcwd(), "../configs")
     if os.path.isdir(repo_cfg):
+        print(f"Using config path from source tree: {repo_cfg}")
         return repo_cfg
 
     raise FileNotFoundError(
         "The 'configs' directory could not be found in the CWD, "
         "the installed package, or the source tree."
+        "Please set the config path with --config-dir /path/to/configs"
     )
 
 
-@hydra.main(version_base=None, config_path=_find_config_path())
+# Decide the default config path if the user does not provide `--config-dir`
+_HAS_CONFIG_DIR = any(a == "--config-dir" for a in sys.argv)
+_DEFAULT_CONFIG_PATH = None if _HAS_CONFIG_DIR else _find_config_path()
+
+
+@hydra.main(version_base=None, config_path=_DEFAULT_CONFIG_PATH)
 def main(config):
+    # Check if the configuration has the correct structure
+    try:
+        valid_cfg = any(
+            key in config for key in ["grid", "observation",
+                                      "metrics", "renderer"]
+        )
+    except Exception:
+        valid_cfg = False
+
+    # If the configuration is not valid, use None to trigger defaults
+    if not valid_cfg:
+        config = None
+
     # Initialise the environment with the provided configuration
     env = make_env(config)
 
