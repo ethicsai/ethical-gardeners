@@ -27,9 +27,9 @@ class SB3Wrapper(BaseWrapper, Env):
         super().reset(seed, options)
 
         self.observation_space = (
-            super().observation_space(self.possible_agents[0])
+            super().observation_space(self.agent_selection)
         )
-        self.action_space = super().action_space(self.possible_agents[0])
+        self.action_space = super().action_space(self.agent_selection)
 
         # Return initial observation, info as per Gymnasium API
         return self.observe(self.agent_selection), {}
@@ -70,41 +70,44 @@ def mask_fn(env):
 
 
 # Saved files helpers
-def _policy_prefix(algo: str):
+def _policy_prefix(algorithm_name: str):
     """
     Generate a prefix for saving/loading policies based on the algorithm.
 
     Args:
-        algo: The algorithm name (e.g., "maskable_ppo", "dqn").
+        algorithm_name: The algorithm name (e.g., "maskable_ppo", "dqn"). It is
+            used in the policy name.
     """
-    return f"{algo}"
+    return f"{algorithm_name}"
 
 
-def save_model(model, algo: str):
+def save_model(model, algorithm_name: str):
     """
     Save the trained model with a timestamped filename.
 
     Args:
         model: The trained model to save.
         env: The environment instance.
-        algo: The algorithm name (e.g., "maskable_ppo", "dqn").
+        algorithm_name: The algorithm name (e.g., "maskable_ppo", "dqn"). It is
+            used in the saved file's name.
     """
     ts = time.strftime("%Y%m%d-%H%M%S")
-    path = f"{_policy_prefix(algo)}_{ts}"
+    path = f"{_policy_prefix(algorithm_name)}_{ts}"
     model.save(path)
     return f"{path}.zip"
 
 
-def get_latest_policy(algo: str):
+def get_latest_policy(algorithm_name: str):
     """
     Retrieve the most recently saved policy file for the given environment and
     algorithm.
 
     Args:
-        algo: The algorithm name (e.g., "maskable_ppo", "dqn").
+        algorithm_name: The algorithm name (e.g., "maskable_ppo", "dqn"). It is
+            used in the search pattern for the saved file.
     """
     try:
-        pattern = f"{_policy_prefix(algo)}*.zip"
+        pattern = f"{_policy_prefix(algorithm_name)}*.zip"
         latest = max(glob.glob(pattern), key=os.path.getctime)
     except ValueError:
         print("Policy not found.")
@@ -130,8 +133,8 @@ def make_SB3_env(env_fn, config):
         ) from e
 
     env = SB3Wrapper(env_fn(config))
-    env.reset(config["random_seed"])
     env = ActionMasker(env, mask_fn)
+    env.reset(seed=config["random_seed"])
 
     return env
 
@@ -150,33 +153,50 @@ def make_env_thunk(env_fn, config):
     return thunk
 
 
-def train(model, algo: str = "maskable_ppo", total_timesteps=10_000):
+def train(model, algorithm_name: str = "maskable_ppo", total_timesteps=10_000):
     """
     Train a given model and save it.
 
     Args:
         model: A model instance to train. The model class should contain a
             `learn` method and a `save` method as in Stable Baselines3.
-        algo: The algorithm name (e.g., "maskable_ppo", "dqn").
+        algorithm_name: The algorithm name (e.g., "maskable_ppo", "dqn"). It is
+            used in the saved file's name.
         total_timesteps: The total number of timesteps to train the model.
     """
-    print(f"Starting training with {algo}")
+    print(f"Starting training with {algorithm_name}")
 
     model.learn(total_timesteps=total_timesteps)
 
-    save_model(model, algo)
+    save_model(model, algorithm_name)
 
     print("Model has been saved.")
     print("Finished training")
 
 
-def evaluate(env, model, algo: str = "maskable_ppo", num_games=100,
+def evaluate(env, model, algorithm_name: str = "maskable_ppo", num_games=100,
              seed=42, deterministic=True, needs_action_mask=False, **kwargs):
     """
     Evaluate a trained agent vs a random agent
+
+    Args:
+        env: A PettingZoo AEC environment instance.
+        model: A trained model instance to evaluate. The model class should
+            contain a `predict` method as in Stable Baselines3.
+        algorithm_name: The algorithm name (e.g., "maskable_ppo", "dqn"). It is
+            used in the printed messages.
+        num_games: The number of games to play for the evaluation.
+        seed: The random seed for the environment. The seed is incremented
+            for each game to ensure different initial conditions.
+        deterministic: Whether to use deterministic actions when predicting
+            with the model.
+        needs_action_mask: Whether the algorithm requires an action mask
+            (e.g., MaskablePPO) or not (e.g., DQN).
+        **kwargs: Additional keyword arguments to pass to the model's predict
+            method.
     """
-    print(f"Starting evaluation with {algo}. Trained agent will play as"
-          f" {env.possible_agents[1]}.")
+    print(f"Starting evaluation with {algorithm_name}. Trained agent will play"
+          f" as {env.possible_agents[1]}.")
 
     scores = {agent: 0 for agent in env.possible_agents}
     total_rewards = {agent: 0 for agent in env.possible_agents}
@@ -233,6 +253,18 @@ def predict_action(model, observation, action_mask, needs_action_mask=False,
     The action mask is used only if the algorithm supports it
     (e.g. MaskablePPO). Otherwise, if the chosen action is not valid,
     a valid action is chosen at random.
+
+    Args:
+        model: A trained model instance to use for prediction. The model class
+            should contain a `predict` method as in Stable Baselines3.
+        observation: The current observation from the environment.
+        action_mask: The action mask indicating valid actions.
+        needs_action_mask: Whether the algorithm requires an action mask
+            (e.g., MaskablePPO) or not (e.g., DQN).
+        deterministic: Whether to use deterministic actions when predicting
+            with the model.
+        **kwargs: Additional keyword arguments to pass to the model's predict
+            method.
     """
     if needs_action_mask:
         act = int(model.predict(
