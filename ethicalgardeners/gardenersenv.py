@@ -191,7 +191,17 @@ class GardenersEnv(AECEnv):
         # Set the random generator if a seed is provided
         if seed is not None:
             self.random_generator = np.random.RandomState(seed)
-            self.grid_world.random_generator = self.random_generator
+
+        # Reset the grid world
+        self.grid_world.reset(self.random_generator)
+
+        # Reset the agents mapping with the new agents from the reset grid
+        self.agents = {self.possible_agents[i]: self.grid_world.agents[i] for i
+                       in range(len(self.grid_world.agents))}
+
+        # Initialize renderers
+        for renderer in self.renderers:
+            renderer.init(self.grid_world)
 
         # Reset metrics
         self.metrics_collector.reset_metrics()

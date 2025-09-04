@@ -124,6 +124,8 @@ Sending Metrics to External Services
 
 With ``metrics=send`` or ``metrics=full``, metrics are also sent to `Weights & Biases (WandB) <https://wandb.ai/>`__ for online visualization and experiment tracking.
 
+You can configure every WandB initialization parameter using the ``metrics.wandb.*`` configuration options (See :ref:`Weights \& Biases parameters <wandb-parameters>` for more details).
+
 Visualization Results
 ---------------------
 

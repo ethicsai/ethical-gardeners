@@ -48,6 +48,12 @@ class GridWorld:
     initialized from a file, randomly generated, or manually configured.
 
     Attributes:
+        init_method (str): Type of initialization ('from_file', 'random',
+            'from_code')
+        init_config (dict): Configuration for initialization. If 'from_file',
+            this is the file path. If 'from_code', this is the grid
+            configuration dictionary. If 'random', the obstacle ratio and
+            number of agents.
         width (int): The width of the grid in cells.
         height (int): The height of the grid in cells.
         min_pollution (float): The minimum level of pollution a cell can have
@@ -67,15 +73,21 @@ class GridWorld:
         agents (list): List of all Agent objects in the environment.
     """
 
-    def __init__(self, width=10, height=10, min_pollution=0, max_pollution=100,
-                 pollution_increment=1, num_seeds_returned=1,
-                 collisions_on=True, flowers_data: dict = None,
-                 random_generator=None, grid=None, agents: list = None,
-                 flowers: list = None):
+    def __init__(self, init_method, init_config, width=10, height=10,
+                 min_pollution=0, max_pollution=100, pollution_increment=1,
+                 num_seeds_returned=1, collisions_on=True,
+                 flowers_data: dict = None, random_generator=None, grid=None,
+                 agents: list = None, flowers: list = None):
         """
         Create a new grid world environment.
 
         Args:
+            init_method (str): Type of initialization ('from_file', 'random',
+                'from_code')
+            init_config (dict): Configuration for initialization. If
+                'from_file', this is the file path. If 'from_code', this is the
+                grid configuration dictionary. If 'random', the obstacle ratio
+                and number of agents.
             width (int, optional): The width of the grid in cells.
             height (int, optional): The height of the grid in cells.
             min_pollution (float, optional): Minimum allowed pollution level
@@ -106,6 +118,9 @@ class GridWorld:
                 place in the grid. Each tuple should be of the form (position,
                 flower_type, growth_stage)
         """
+        self.init_method = init_method
+        self.init_config = copy.deepcopy(init_config)  # avoid the items from
+        # being mutated
         self.width = width
         self.height = height
         self.min_pollution = min_pollution
@@ -155,9 +170,10 @@ class GridWorld:
                 self.place_flower(position, flower_type, growth_stage)
 
     @classmethod
-    def init_from_file(cls, file_path, random_generator=None, min_pollution=0,
-                       max_pollution=100, pollution_increment=1,
-                       num_seeds_returned=1, collisions_on=True):
+    def init_from_file(cls, init_config, random_generator=None,
+                       min_pollution=0, max_pollution=100,
+                       pollution_increment=1, num_seeds_returned=1,
+                       collisions_on=True):
         """
         Initialize the grid from a file.
 
@@ -189,8 +205,8 @@ class GridWorld:
             2,2,1|0
 
         Args:
-            file_path (str): Path to the file containing the grid
-                configuration.
+            init_config (dict): Configuration dictionary with the key
+                "file_path" specifying the path to the initialization file.
             random_generator (:py:class:`numpy.random.RandomState`, optional):
                 Custom random generator instance for reproducibility.
             min_pollution (float, optional): Minimum allowed pollution level
@@ -204,7 +220,7 @@ class GridWorld:
             collisions_on (bool, optional): Whether agents can occupy the same
                 cell simultaneously.
         """
-        with open(file_path, 'r') as f:
+        with open(init_config["file_path"], 'r') as f:
             lines = f.readlines()
 
         # Read width and height from the first line
@@ -272,25 +288,27 @@ class GridWorld:
         for position, (flower_type, growth_stage) in flowers_to_create.items():
             flowers.append((position, flower_type, growth_stage))
 
-        return cls(width, height, min_pollution, max_pollution,
-                   pollution_increment, num_seeds_returned, collisions_on,
-                   flowers_data, random_generator, grid, agents, flowers)
+        return cls("from_file", init_config, width, height,
+                   min_pollution, max_pollution, pollution_increment,
+                   num_seeds_returned, collisions_on, flowers_data,
+                   random_generator, grid, agents, flowers)
 
     @classmethod
-    def init_random(cls, width=10, height=10,
-                    obstacles_ratio=0.2, nb_agent=2, min_pollution=0,
-                    max_pollution=100, pollution_increment=1,
+    def init_random(cls, init_config=None, width=10, height=10,
+                    min_pollution=0, max_pollution=100, pollution_increment=1,
                     num_seeds_returned=1, collisions_on=True,
                     flowers_data: dict = None, random_generator=None):
         """
         Initialize a random grid with obstacles and agents.
 
         Args:
+            init_config (dict, optional): Configuration dictionary with the
+                keys "obstacles_ratio" (float between 0 and 1) and "nb_agent"
+                (int) specifying the ratio of obstacle cells and the number of
+                agents to place in the grid. Defaults to
+                {"obstacles_ratio": 0.2, "nb_agent": 1}
             width (int, optional): Width of the grid
             height (int, optional): Height of the grid
-            obstacles_ratio (float, optional): Proportion of cells that will be
-                obstacles (0.0 to 1.0)
-            nb_agent (int, optional): Number of agents to place on the grid
             min_pollution (float, optional): Minimum allowed pollution level
                 for any cell.
             max_pollution (float, optional): Maximum allowed pollution level
@@ -311,6 +329,9 @@ class GridWorld:
             ValueError: If there are not enough valid positions for the
                 specified number of agents after placing obstacles.
         """
+        if init_config is None:
+            init_config = {"obstacles_ratio": 0.2, "nb_agent": 1}
+
         random_generator = random_generator if (
                 random_generator is not None) else np.random.RandomState()
 
@@ -324,7 +345,7 @@ class GridWorld:
 
         # Place obstacles randomly
         indices = np.arange(len(valid_positions))  # choice needs indices
-        num_obstacles = int(obstacles_ratio * width * height)
+        num_obstacles = int(init_config["obstacles_ratio"] * width * height)
         selected_indices = random_generator.choice(indices,
                                                    num_obstacles,
                                                    replace=False)
@@ -335,27 +356,30 @@ class GridWorld:
             grid[i][j] = Cell(CellType.OBSTACLE)
             valid_positions.remove(pos)
 
-        if len(valid_positions) < nb_agent:
+        if len(valid_positions) < init_config["nb_agent"]:
             raise ValueError(
-                f"Not enough valid positions for {nb_agent} agents")
+                f"Not enough valid positions for {init_config['nb_agent']}"
+                f" agents")
 
         indices = np.arange(len(valid_positions))
-        selected_indices = random_generator.choice(indices, nb_agent,
+        selected_indices = random_generator.choice(indices,
+                                                   init_config["nb_agent"],
                                                    replace=False)
         agent_positions = [valid_positions[i] for i in selected_indices]
 
         agents = []
-        for i in range(nb_agent):
+        for i in range(init_config["nb_agent"]):
             # Create agent with default values
             agent = Agent(agent_positions[i])
             agents.append(agent)
 
-        return cls(width, height, min_pollution, max_pollution,
-                   pollution_increment, num_seeds_returned, collisions_on,
-                   flowers_data, random_generator, grid, agents)
+        return cls("random", init_config, width, height,
+                   min_pollution, max_pollution, pollution_increment,
+                   num_seeds_returned, collisions_on, flowers_data,
+                   random_generator, grid, agents)
 
     @classmethod
-    def init_from_code(cls, grid_config=None, random_generator=None,
+    def init_from_code(cls, init_config=None, random_generator=None,
                        width=10, height=10, min_pollution=0, max_pollution=100,
                        pollution_increment=1, num_seeds_returned=1,
                        collisions_on=True):
@@ -367,8 +391,9 @@ class GridWorld:
         debugging without having to create external files.
 
         Args:
-            grid_config (dict, optional): Configuration dictionary with the
-                following structure:
+            init_config (dict, optional): Configuration dictionary with the key
+                "grid_config" specifying the grid configuration. The grid
+                configuration dictionary should have the following structure:
 
                 .. code-block:: python
 
@@ -416,8 +441,9 @@ class GridWorld:
             random_generator (:py:class:`numpy.random.RandomState`, optional):
                 Custom random generator instance for reproducibility.
         """
-        if grid_config is None:
-            grid_config = {}
+        grid_config = {}
+        if init_config is not None and "grid_config" in init_config:
+            grid_config = init_config["grid_config"]
 
         # Set grid dimensions from the configuration
         width = grid_config.get('width', width)
@@ -477,7 +503,8 @@ class GridWorld:
 
             flowers.append((position, flower_type, growth_stage))
 
-        return cls(width=width, height=height, min_pollution=min_pollution,
+        return cls("from_code", init_config, width=width,
+                   height=height, min_pollution=min_pollution,
                    max_pollution=max_pollution,
                    pollution_increment=pollution_increment,
                    num_seeds_returned=num_seeds_returned,
@@ -485,6 +512,119 @@ class GridWorld:
                    flowers_data=flowers_data, grid=grid,
                    agents=agents, flowers=flowers,
                    random_generator=random_generator)
+
+    @classmethod
+    def create_from_config(cls, init_method: str, init_config=None,
+                           random_generator=None, width=10, height=10,
+                           min_pollution=0, max_pollution=100,
+                           pollution_increment=1, num_seeds_returned=1,
+                           collisions_on=True, flowers_data: dict = None):
+        """
+        Create a GridWorld instance based on the specified initialization
+        method and configuration.
+
+        Args:
+            init_method (str): Type of initialization ('from_file', 'random',
+                'from_code')
+            init_config (dict): Configuration for initialization. If
+                'from_file', this is the file path. If 'from_code', this is the
+                grid configuration dictionary. If 'random', the obstacle ratio
+                and number of agents.
+            random_generator (:py:class:`numpy.random.RandomState`, optional):
+                Custom random generator instance for reproducibility.
+            width (int, optional): Width of the grid (used for "random"
+                initialization).
+            height (int, optional): Height of the grid (used for "random"
+                initialization).
+            min_pollution (float, optional): Minimum allowed pollution level
+                for any cell.
+            max_pollution (float, optional): Maximum allowed pollution level
+                for any cell.
+            pollution_increment (float, optional): Amount by which pollution
+                increases in empty cells.
+            num_seeds_returned (int, optional): Number of seeds returned when
+                harvesting a flower.
+            collisions_on (bool, optional): Whether agents can occupy the same
+                cell simultaneously.
+            flowers_data (dict, optional): Configuration data for different
+                types of flowers.
+        """
+        if init_method == "from_file":
+            return cls.init_from_file(
+                init_config=init_config,
+                random_generator=random_generator,
+                min_pollution=min_pollution,
+                max_pollution=max_pollution,
+                pollution_increment=pollution_increment,
+                collisions_on=collisions_on,
+                num_seeds_returned=num_seeds_returned,
+            )
+
+        elif init_method == "from_code":
+            return cls.init_from_code(
+                init_config=init_config,
+                random_generator=random_generator,
+                min_pollution=min_pollution,
+                max_pollution=max_pollution,
+                pollution_increment=pollution_increment,
+                collisions_on=collisions_on,
+                num_seeds_returned=num_seeds_returned,
+            )
+
+        elif init_method == "random":
+            return cls.init_random(
+                init_config=init_config,
+                width=width,
+                height=height,
+                min_pollution=min_pollution,
+                max_pollution=max_pollution,
+                pollution_increment=pollution_increment,
+                collisions_on=collisions_on,
+                num_seeds_returned=num_seeds_returned,
+                random_generator=random_generator,
+                flowers_data=flowers_data
+            )
+
+        else:
+            # Default
+            return cls.init_random(
+                random_generator=random_generator,
+                min_pollution=min_pollution,
+                max_pollution=max_pollution,
+                pollution_increment=pollution_increment,
+                collisions_on=collisions_on,
+                num_seeds_returned=num_seeds_returned,
+                flowers_data=flowers_data
+            )
+
+    def reset(self, random_generator=None):
+        """
+        Reset the grid world to its initial configuration.
+
+        Args:
+            random_generator (:py:class:`numpy.random.RandomState`, optional):
+                Custom random generator instance for reproducibility. If None,
+                uses the same random generator as the current instance.
+        """
+        new = self.create_from_config(
+            init_method=self.init_method,
+            init_config=self.init_config,
+            random_generator=(random_generator
+                              if random_generator is not None
+                              else self.random_generator),
+            width=self.width,
+            height=self.height,
+            min_pollution=self.min_pollution,
+            max_pollution=self.max_pollution,
+            pollution_increment=self.pollution_increment,
+            num_seeds_returned=self.num_seeds_returned,
+            collisions_on=self.collisions_on,
+            flowers_data=self.flowers_data,
+        )
+
+        # Replace this object's state with the new one.
+        self.__dict__.update(new.__dict__)
+        return self
 
     def place_agent(self, agent: Agent):
         """
