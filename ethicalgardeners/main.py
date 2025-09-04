@@ -62,33 +62,23 @@ def make_env(config=None):
     num_seeds_returned = config.grid.get("num_seeds_returned", 1)
     flowers_data = config.grid.get("flowers_data", None)
 
+    # Random initialization parameters
+    width = None
+    height = None
+
     # Grid initialization
     grid_init_method = config.grid.get("init_method", "random")
 
+    init_config = {}
     if grid_init_method == "from_file":
         file_path = config.grid.file_path
-        grid_world = GridWorld.init_from_file(
-            file_path=file_path,
-            random_generator=random_generator,
-            min_pollution=min_pollution,
-            max_pollution=max_pollution,
-            pollution_increment=pollution_increment,
-            collisions_on=collisions_on,
-            num_seeds_returned=num_seeds_returned,
-        )
+
+        init_config = {"file_path": file_path}
 
     elif grid_init_method == "from_code":
         grid_config = config.grid.get("config", None)
 
-        grid_world = GridWorld.init_from_code(
-            grid_config=grid_config,
-            random_generator=random_generator,
-            min_pollution=min_pollution,
-            max_pollution=max_pollution,
-            pollution_increment=pollution_increment,
-            collisions_on=collisions_on,
-            num_seeds_returned=num_seeds_returned,
-        )
+        init_config = {"grid_config": grid_config}
 
     elif grid_init_method == "random":
         width = config.grid.get("width", 10)
@@ -96,30 +86,24 @@ def make_env(config=None):
         obstacles_ratio = config.grid.get("obstacles_ratio", 0.2)
         nb_agent = config.grid.get("nb_agent", 2)
 
-        grid_world = GridWorld.init_random(
-            width=width,
-            height=height,
-            min_pollution=min_pollution,
-            max_pollution=max_pollution,
-            pollution_increment=pollution_increment,
-            collisions_on=collisions_on,
-            num_seeds_returned=num_seeds_returned,
-            random_generator=random_generator,
-            obstacles_ratio=obstacles_ratio,
-            nb_agent=nb_agent,
-            flowers_data=flowers_data
-        )
+        init_config = {
+            "obstacles_ratio": obstacles_ratio,
+            "nb_agent": nb_agent
+        }
 
-    else:
-        grid_world = GridWorld.init_random(
-            random_generator=random_generator,
-            min_pollution=min_pollution,
-            max_pollution=max_pollution,
-            pollution_increment=pollution_increment,
-            collisions_on=collisions_on,
-            num_seeds_returned=num_seeds_returned,
-            flowers_data=flowers_data
-        )
+    grid_world = GridWorld.create_from_config(
+        init_method=grid_init_method,
+        init_config=init_config,
+        width=width,
+        height=height,
+        min_pollution=min_pollution,
+        max_pollution=max_pollution,
+        pollution_increment=pollution_increment,
+        collisions_on=collisions_on,
+        num_seeds_returned=num_seeds_returned,
+        random_generator=random_generator,
+        flowers_data=flowers_data
+    )
 
     # Create the action space from the number of flowers types
     num_flower_types = len(grid_world.flowers_data)
@@ -157,10 +141,16 @@ def make_env(config=None):
     metrics_out_dir = config.metrics.get("out_dir_path", "./metrics")
     export_metrics = config.metrics.get("export_on", False)
     send_metrics = config.metrics.get("send_on", False)
+
+    # Read `config.metrics.wandb` if present and convert to a plain dict
+    wandb_cfg = config.metrics.get("wandb", OmegaConf.create({}))
+    wandb_params = dict(wandb_cfg)
+
     metrics_collector = MetricsCollector(
         metrics_out_dir,
         export_metrics,
-        send_metrics
+        send_metrics,
+        **wandb_params
     )
 
     # Initialise renderers

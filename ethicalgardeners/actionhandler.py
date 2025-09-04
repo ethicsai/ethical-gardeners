@@ -164,6 +164,7 @@ class ActionHandler:
 
         agent.add_money(
             self.grid_world.flowers_data[flower.flower_type]['price'])
+        agent.turns_without_income = 0
 
         agent.flowers_planted[flower.flower_type] -= 1
         agent.flowers_harvested[flower.flower_type] += 1

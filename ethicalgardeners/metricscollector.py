@@ -61,11 +61,14 @@ class MetricsCollector:
             * rewards (dict): Current rewards for each agent.
             * accumulated_rewards (dict): Cumulative rewards for each agent.
             * agent_selection (str): Currently selected agent.
+        run (wandb.run): An WandB run instance for logging metrics. Can be
+            provided externally or created internally if send_on is True.
         _run_id (int): Unique identifier for the run, used for file naming
             during export.
     """
 
-    def __init__(self, out_dir_path, export_on, send_on):
+    def __init__(self, out_dir_path, export_on, send_on, wandb_run=None,
+                 **wandb_params):
         """
         Create the metrics collector.
 
@@ -76,6 +79,12 @@ class MetricsCollector:
                 exported to local files like CSV files.
             send_on (bool): Flag indicating whether metrics should be sent to
                 external services like WandB.
+            wandb_run (wandb.run, optional): An existing WandB run instance to
+                use for logging metrics. If None, a new run will be created if
+                send_on is True.
+            **wandb_params: Additional parameters to pass to wandb.init() if
+                a new run is created. This can include project name, entity,
+                config, etc.
         """
         self.out_dir_path = out_dir_path
         self.export_on = export_on
@@ -101,6 +110,30 @@ class MetricsCollector:
             import time
 
             self._run_id = int(time.time())
+
+        self.run = wandb_run
+        # Initialize WandB if not already done
+        if self.send_on:
+            try:
+                import wandb
+            except ImportError:
+                raise ImportError(
+                    "Error while importing wandb module. "
+                    "WandB is required to use send_metrics. "
+                    "Please install WandB with `pip install wandb` "
+                    "or `pip install ethicalgardeners[metrics]`"
+                )
+
+            if not self.run:
+                if wandb_params is None:
+                    wandb_params = {}
+                project = wandb_params.pop("project", "ethical-gardeners")
+                name = wandb_params.pop("name", f"run_{self._run_id}")
+                reinit = wandb_params.pop("reinit", "create_new")
+                self.run = wandb.init(project=project,
+                                      name=name,
+                                      reinit=reinit,
+                                      **wandb_params)
 
     def update_metrics(self, grid_world, rewards, agent_selection: str):
         """
@@ -175,18 +208,8 @@ class MetricsCollector:
         WandB session and ensure all metrics are saved.
         """
         if self.send_on:
-            try:
-                import wandb
-            except ImportError:
-                raise ImportError(
-                    "Error while importing wandb module. "
-                    "WandB is required to use finish_run. "
-                    "Please install WandB with `pip install wandb` "
-                    "or `pip install ethicalgardeners[metrics]`"
-                )
-
-            if wandb.run:
-                wandb.finish()
+            if self.run:
+                self.run.finish()
 
         if self.export_on or self.send_on:
             import time
@@ -268,26 +291,11 @@ class MetricsCollector:
         simulation state.
         """
         if self.send_on:
-            try:
-                import wandb
-            except ImportError:
-                raise ImportError(
-                    "Error while importing wandb module. "
-                    "WandB is required to use send_metrics. "
-                    "Please install WandB with `pip install wandb` "
-                    "or `pip install ethicalgardeners[metrics]`"
-                )
-
-            # Initialize WandB if not already done
-            if not wandb.run:
-                wandb.init(project="ethical-gardeners",
-                           name=f"run_{self._run_id}")
-
             # Prepare metrics dictionary for wandb
             metrics_to_log = self._prepare_metrics()
 
             # Log metrics to wandb
-            wandb.log(metrics_to_log)
+            self.run.log(metrics_to_log)
 
     def _prepare_metrics(self):
         """
