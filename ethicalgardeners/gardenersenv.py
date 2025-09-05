@@ -358,10 +358,12 @@ class GardenersEnv(AECEnv):
         """
         Close the environment and clean up resources.
 
-        This method finalizes all renderers.
+        This method finalizes all renderers and close the metrics_collector.
         """
         for renderer in self.renderers:
             renderer.end_render()
+
+        self.metrics_collector.close()
 
     def _get_observations(self, agent_id):
         """

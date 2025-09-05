@@ -42,6 +42,7 @@ class MetricsCollector:
         metrics (dict): Dictionary containing all collected metrics, including:
 
             * step (int): Current step in the simulation.
+            * episode (int): Current episode number.
             * total_planted_flowers (int): Total number of flowers planted by
               all agents.
             * num_planted_flowers_per_agent (dict): Flowers planted per agent.
@@ -91,6 +92,7 @@ class MetricsCollector:
         self.send_on = send_on
         self.metrics = {
             "step": 0,  # Current step in the simulation
+            "episode": 1,  # Current episode number
             "total_planted_flowers": 0,
             "num_planted_flowers_per_agent": {},
             "total_harvested_flowers": 0,
@@ -207,14 +209,19 @@ class MetricsCollector:
         should be called at the end of a simulation run to properly close the
         WandB session and ensure all metrics are saved.
         """
+        self.metrics["episode"] += 1
+
+    def close(self):
+        """
+        Close the metrics collector.
+
+        This method finishes the current WandB run if send_on is True. It
+        should be called when the metrics collector is no longer needed to
+        ensure all resources are properly released.
+        """
         if self.send_on:
             if self.run:
                 self.run.finish()
-
-        if self.export_on or self.send_on:
-            import time
-
-            self._run_id = int(time.time())
 
     def reset_metrics(self):
         """
@@ -225,6 +232,7 @@ class MetricsCollector:
         """
         self.metrics = {
             "step": 0,
+            "episode": self.metrics["episode"],
             "total_planted_flowers": 0,
             "num_planted_flowers_per_agent": {},
             "total_harvested_flowers": 0,
@@ -307,6 +315,7 @@ class MetricsCollector:
         """
         metrics_dict = {
             'step': self.metrics["step"],
+            'episode': self.metrics['episode'],
             'total_planted_flowers': self.metrics['total_planted_flowers'],
         }
 
