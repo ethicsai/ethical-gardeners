@@ -9,6 +9,7 @@ import hydra
 import numpy as np
 from omegaconf import OmegaConf
 
+from ethicalgardeners import algorithms
 from ethicalgardeners.action import create_action_enum
 from ethicalgardeners.actionhandler import ActionHandler
 from ethicalgardeners.gardenersenv import GardenersEnv
@@ -61,33 +62,23 @@ def make_env(config=None):
     num_seeds_returned = config.grid.get("num_seeds_returned", 1)
     flowers_data = config.grid.get("flowers_data", None)
 
+    # Random initialization parameters
+    width = None
+    height = None
+
     # Grid initialization
     grid_init_method = config.grid.get("init_method", "random")
 
+    init_config = {}
     if grid_init_method == "from_file":
         file_path = config.grid.file_path
-        grid_world = GridWorld.init_from_file(
-            file_path=file_path,
-            random_generator=random_generator,
-            min_pollution=min_pollution,
-            max_pollution=max_pollution,
-            pollution_increment=pollution_increment,
-            collisions_on=collisions_on,
-            num_seeds_returned=num_seeds_returned,
-        )
+
+        init_config = {"file_path": file_path}
 
     elif grid_init_method == "from_code":
         grid_config = config.grid.get("config", None)
 
-        grid_world = GridWorld.init_from_code(
-            grid_config=grid_config,
-            random_generator=random_generator,
-            min_pollution=min_pollution,
-            max_pollution=max_pollution,
-            pollution_increment=pollution_increment,
-            collisions_on=collisions_on,
-            num_seeds_returned=num_seeds_returned,
-        )
+        init_config = {"grid_config": grid_config}
 
     elif grid_init_method == "random":
         width = config.grid.get("width", 10)
@@ -95,30 +86,24 @@ def make_env(config=None):
         obstacles_ratio = config.grid.get("obstacles_ratio", 0.2)
         nb_agent = config.grid.get("nb_agent", 2)
 
-        grid_world = GridWorld.init_random(
-            width=width,
-            height=height,
-            min_pollution=min_pollution,
-            max_pollution=max_pollution,
-            pollution_increment=pollution_increment,
-            collisions_on=collisions_on,
-            num_seeds_returned=num_seeds_returned,
-            random_generator=random_generator,
-            obstacles_ratio=obstacles_ratio,
-            nb_agent=nb_agent,
-            flowers_data=flowers_data
-        )
+        init_config = {
+            "obstacles_ratio": obstacles_ratio,
+            "nb_agent": nb_agent
+        }
 
-    else:
-        grid_world = GridWorld.init_random(
-            random_generator=random_generator,
-            min_pollution=min_pollution,
-            max_pollution=max_pollution,
-            pollution_increment=pollution_increment,
-            collisions_on=collisions_on,
-            num_seeds_returned=num_seeds_returned,
-            flowers_data=flowers_data
-        )
+    grid_world = GridWorld.create_from_config(
+        init_method=grid_init_method,
+        init_config=init_config,
+        width=width,
+        height=height,
+        min_pollution=min_pollution,
+        max_pollution=max_pollution,
+        pollution_increment=pollution_increment,
+        collisions_on=collisions_on,
+        num_seeds_returned=num_seeds_returned,
+        random_generator=random_generator,
+        flowers_data=flowers_data
+    )
 
     # Create the action space from the number of flowers types
     num_flower_types = len(grid_world.flowers_data)
@@ -156,10 +141,16 @@ def make_env(config=None):
     metrics_out_dir = config.metrics.get("out_dir_path", "./metrics")
     export_metrics = config.metrics.get("export_on", False)
     send_metrics = config.metrics.get("send_on", False)
+
+    # Read `config.metrics.wandb` if present and convert to a plain dict
+    wandb_cfg = config.metrics.get("wandb", {})
+    wandb_params = dict(wandb_cfg)
+
     metrics_collector = MetricsCollector(
         metrics_out_dir,
         export_metrics,
-        send_metrics
+        send_metrics,
+        **wandb_params
     )
 
     # Initialise renderers
@@ -236,7 +227,8 @@ def make_agent_algorithm():
     return None
 
 
-def run_simulation(env, agent_algorithms=None):
+def run_simulation(env, agent_algorithms=None, deterministic=None,
+                   needs_action_mask=None, **kwargs):
     """
     Run the simulation loop for the environment.
 
@@ -248,15 +240,38 @@ def run_simulation(env, agent_algorithms=None):
         env (GardenersEnv): The environment to run the simulation in.
         agent_algorithms (list, optional): List of agent algorithms to use.
             Defaults to None, which means random actions will be taken.
+        needs_action_mask (list, optional): List of booleans indicating whether
+            each agent algorithm requires an action mask. Defaults to None.
     """
-    for i, agent in enumerate(env.agent_iter()):
+    env.reset()
+
+    if needs_action_mask is None:
+        needs_action_mask = [False for _ in env.possible_agents]
+
+    if deterministic is None:
+        deterministic = [True for _ in env.possible_agents]
+
+    for agent in env.agent_iter():
         observations, rewards, termination, truncation, infos = env.last()
+        observation, action_mask = observations.values()
 
         if termination or truncation:
             break
-        else:
+
+        if agent_algorithms is None:
             action = env.action_space(agent).sample(
-                observations['action_mask']
+                action_mask
+            )
+        else:
+            # Use the corresponding agent algorithm to determine the action
+            agent_index = env.possible_agents.index(agent)
+            action = algorithms.predict_action(
+                agent_algorithms[agent_index],
+                observation,
+                action_mask,
+                needs_action_mask=needs_action_mask[agent_index],
+                deterministic=deterministic[agent_index],
+                **kwargs
             )
 
         env.step(action)

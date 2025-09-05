@@ -213,6 +213,40 @@ Collected metrics include:
 - Agent rewards
 - Currently active agent
 
+.. _wandb-parameters:
+
+Weights \& Biases parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When `metrics.send_on` is `true`, you can pass any `wandb.init` parameters under `metrics.wandb`. If you don't set
+them, the default values are
+
+- project: ethical-gardeners
+- name: run_<timestamp>
+- reinit: create_new
+
+Example:
+
+.. code-block:: yaml
+
+    metrics:
+      out_dir_path: "./metrics"
+      export_on: true
+      send_on: true
+      wandb:
+        project: ethical-gardeners
+        entity: your-entity
+        name: run_1234567890
+        group: ethicsai
+        tags: [simulation]
+        reinit: create_new
+        config:
+          random_seed: 42
+          grid_width: 10
+          grid_height: 10
+
+See `Weights & Biases documentation <https://docs.wandb.ai/ref/python/sdk/functions/init/>`__ for more details on available parameters.
+
 Renderer Configuration
 ----------------------
 

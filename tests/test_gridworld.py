@@ -66,7 +66,9 @@ class TestWorldGrid(unittest.TestCase):
         3. Agents are created and placed at the correct positions
         4. Flowers are created with the correct types and growth stages
         """
-        self.test_grid = GridWorld.init_from_file(self.temp_file_path)
+        self.test_grid = GridWorld.init_from_file(
+            {'file_path': self.temp_file_path}
+        )
 
         # Check grid dimensions
         self.assertEqual(self.test_grid.width, 5)
@@ -109,7 +111,8 @@ class TestWorldGrid(unittest.TestCase):
         nb_agents = 3
 
         self.test_grid = GridWorld.init_random(
-            width, height, obstacles_ratio, nb_agents,
+            {'obstacles_ratio': obstacles_ratio, 'nb_agent': nb_agents},
+            width, height,
             random_generator=random_generator
             )
 
@@ -153,18 +156,18 @@ class TestWorldGrid(unittest.TestCase):
         obstacles_ratio = 0.2
         nb_agents = 5
 
-        grid1 = GridWorld.init_random(width=10, height=10,
-                                      random_generator=np_random1,
-                                      obstacles_ratio=obstacles_ratio,
-                                      nb_agent=nb_agents)
-        grid2 = GridWorld.init_random(width=10, height=10,
-                                      random_generator=np_random2,
-                                      obstacles_ratio=obstacles_ratio,
-                                      nb_agent=nb_agents)
-        grid3 = GridWorld.init_random(width=10, height=10,
-                                      random_generator=np_random3,
-                                      obstacles_ratio=obstacles_ratio,
-                                      nb_agent=nb_agents)
+        grid1 = GridWorld.init_random({'obstacles_ratio': obstacles_ratio,
+                                      'nb_agent': nb_agents},
+                                      width=10, height=10,
+                                      random_generator=np_random1)
+        grid2 = GridWorld.init_random({'obstacles_ratio': obstacles_ratio,
+                                      'nb_agent': nb_agents},
+                                      width=10, height=10,
+                                      random_generator=np_random2)
+        grid3 = GridWorld.init_random({'obstacles_ratio': obstacles_ratio,
+                                      'nb_agent': nb_agents},
+                                      width=10, height=10,
+                                      random_generator=np_random3)
 
         # Collect agent positions from each grid
         agent_positions1 = [agent.position for agent in grid1.agents]
@@ -207,7 +210,9 @@ class TestWorldGrid(unittest.TestCase):
         3. Agents are created with the specified properties
         4. Flowers are created with the correct types and growth stages
         """
-        self.test_grid = GridWorld.init_from_code(self.test_config)
+        self.test_grid = GridWorld.init_from_code(
+            {'grid_config': self.test_config}
+        )
 
         # Check grid dimensions
         self.assertEqual(self.test_grid.width, 4)
