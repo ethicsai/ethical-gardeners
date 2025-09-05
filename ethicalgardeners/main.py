@@ -143,7 +143,7 @@ def make_env(config=None):
     send_metrics = config.metrics.get("send_on", False)
 
     # Read `config.metrics.wandb` if present and convert to a plain dict
-    wandb_cfg = config.metrics.get("wandb", OmegaConf.create({}))
+    wandb_cfg = config.metrics.get("wandb", {})
     wandb_params = dict(wandb_cfg)
 
     metrics_collector = MetricsCollector(

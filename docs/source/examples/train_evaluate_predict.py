@@ -41,6 +41,8 @@ def main(config):
 
     algorithms.train(model, algo, total_timesteps=total_timesteps)
 
+    env.close()
+
     # ---- Evaluation ----
     env = make_env(config)
 

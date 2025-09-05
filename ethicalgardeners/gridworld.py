@@ -601,6 +601,12 @@ class GridWorld:
         """
         Reset the grid world to its initial configuration.
 
+        Warning: This method uses a special approach to reset the instance by
+        creating a new instance and copying its state with an access to
+        self.__dict__. It should work in most cases but take care if you
+        have a special case such as an attribute not being in __dict__.
+
+
         Args:
             random_generator (:py:class:`numpy.random.RandomState`, optional):
                 Custom random generator instance for reproducibility. If None,
