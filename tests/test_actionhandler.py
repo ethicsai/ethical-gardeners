@@ -80,7 +80,8 @@ class TestActionHandler(unittest.TestCase):
 
         # Verify the flower was placed on the grid
         self.grid_world.place_flower.assert_called_with(self.agent.position,
-                                                        flower_type)
+                                                        flower_type,
+                                                        self.agent)
 
         # Verify the flowers planted by the agent are incremented
         self.assertEqual(self.agent.flowers_planted[0], 1)
@@ -116,6 +117,7 @@ class TestActionHandler(unittest.TestCase):
         mock_cell.flower = mock_flower
         mock_flower.is_grown.return_value = True
         mock_flower.flower_type = 0
+        mock_flower.planted_by = self.agent
 
         self.grid_world.get_cell.return_value = mock_cell
         self.grid_world.flowers_data = {0: {'price': 10.0}}

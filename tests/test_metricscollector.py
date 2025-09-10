@@ -88,8 +88,7 @@ class TestMetricsCollector(unittest.TestCase):
 
         # Check if the file was created
         expected_filename = (
-            os.path.join(self.temp_dir,
-                         f"metrics_run_{self.collector._run_id}.csv")
+            os.path.join(self.temp_dir, "metrics_run.csv")
         )
         self.assertTrue(os.path.exists(expected_filename))
 

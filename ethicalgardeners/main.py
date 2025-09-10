@@ -4,6 +4,7 @@ Main entry point for the Ethical Gardeners simulation environment.
 import os
 import sys
 from importlib.resources import files
+import shutil
 
 import hydra
 import numpy as np
@@ -152,6 +153,20 @@ def make_env(config=None):
         send_metrics,
         **wandb_params
     )
+
+    # Delete hydra logs if export_on is False
+    if not export_metrics:
+        try:
+            run_dir = (
+                hydra.core.hydra_config.HydraConfig.get().runtime.output_dir)
+
+            hydra_dir = os.path.join(run_dir, ".hydra")
+
+            if os.path.isdir(hydra_dir):
+                shutil.rmtree(hydra_dir, ignore_errors=True)
+        except Exception:
+            pass  # If the passed config isn't a Hydra config (None or simple
+            # OmegaConf)
 
     # Initialise renderers
     renderers = []

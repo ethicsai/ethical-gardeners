@@ -16,7 +16,7 @@ To launch the simulation with default settings, use the following command in a s
 working directory being the project root:
 
 ```sh
-python ethicalgardeners/main.py --config-name config
+python -m ethicalgardeners.main --config-name config
 ```
 
 ### Run tests

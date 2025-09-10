@@ -10,3 +10,9 @@ defaults:
 random_seed: 42
 num_iterations: 1000
 render_mode: "human"  # "none" or "human"
+
+# Hydra overrides
+hydra:
+  run:
+    dir: ${metrics.out_dir_path}   # put Hydra outputs next to the metrics
+  output_subdir: .hydra
