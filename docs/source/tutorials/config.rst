@@ -102,27 +102,15 @@ Three initialization methods are available:
    the file should be formatted as follows:
 
    - First line: width height
-   - Grid representation: G (ground), O (obstacle), FX_Y (ground with flower type X at growth stage Y), AX (ground with agent ID X)
+   - Grid representation: G (ground), O (obstacle), FX_Y_Z (ground with flower type X planted by agent of id Y at growth stage Z), AX (ground with agent ID X)
    - Agent definitions: ID,money,seeds (of type 0| of type 1| of type 2)
    - Flower types definitions: type,price,pollution_reduction (for stage 0| stage 1| stage 2)
 
-   .. code-block:: text
-
-      10 10
-      G G G O O G G G G G
-      G F0_2 G G G O G G G G
-      G O G A0 O G G G G G
-      G G G G O G G G G G
-      O O O O O G G G G G
-      G G G G G G G G G G
-      G G G G G G G G G G
-      G G G G G G G G G G
-      G G G G G G G G G G
-      G G G G G G G G G G
-      0,100,5|10|3
-      0,10,5|2|1
-      1,5,3|1|0
-      2,2,1|0
+   .. literalinclude:: /examples/grid_config.txt
+      :language: text
+      :caption: grid_config.txt
+      :name: grid_config
+      :encoding: utf-8
 
 Common Grid Parameters
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -201,9 +189,9 @@ The metrics configuration controls how simulation data is collected and exported
 
 .. code-block:: yaml
 
-    out_dir_path: "./metrics"  # Directory for metrics output
-    export_on: true            # Export metrics to CSV files
-    send_on: false             # Send metrics to external services (e.g., Weights & Biases)
+    out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}  # Directory for metrics output
+    export_on: true                                        # Export metrics to CSV files
+    send_on: false                                         # Send metrics to external services (e.g., Weights & Biases)
 
 Collected metrics include:
 
@@ -212,6 +200,17 @@ Collected metrics include:
 - Pollution levels (average and thresholds)
 - Agent rewards
 - Currently active agent
+
+Hydra supports dynamic expressions, so you can use `${now: }` with:
+
+- `%Y`: Year
+- `%m`: Month
+- `%d`: Day of the month
+- `%H`: Hour (24-hour clock)
+- `%M`: Minute
+- `%S`: Second
+
+By default, the output directory will be outputs/YEAR_MONTH_DAY/HOUR_MINUTE_SECOND. This directory will store the csv file named metrics_run.csv as well as the hydra configuration used for the simulation in the ``.hydra`` directory and the logs.
 
 .. _wandb-parameters:
 
@@ -230,7 +229,7 @@ Example:
 .. code-block:: yaml
 
     metrics:
-      out_dir_path: "./metrics"
+      out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
       export_on: true
       send_on: true
       wandb:
@@ -420,7 +419,7 @@ When specifying configurations, it's important to follow Hydra's hierarchical st
       range: 1
 
     metrics:
-      out_dir_path: "./metrics"
+      out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
       export_on: true
       send_on: false
 

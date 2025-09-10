@@ -33,13 +33,8 @@ For metrics tracking (wandb):
 Quick Start
 -----------
 
-To run the simulation with the default configuration. After cloning the project, at the project root, use the following command:
-
-.. code-block:: bash
-
-    python ethicalgardeners/main.py --config-name config
-
-After installing the package using pip, you can run instead:
+To run the simulation with the default configuration. After cloning the project, at the project root or after installing
+the package using pypi, use the following command:
 
 .. code-block:: bash
 

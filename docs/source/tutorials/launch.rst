@@ -36,13 +36,8 @@ Launching the Simulation
 Basic Launch Command
 ^^^^^^^^^^^^^^^^^^^^
 
-To run the simulation with the default configuration. After cloning the project, at the project root, use the following command:
-
-.. code-block:: bash
-
-    python ethicalgardeners/main.py --config-name config
-
-After installing the package using pip, you can also run:
+To run the simulation with the default configuration. After cloning the project, at the project root or after installing
+the package using pypi, use the following command:
 
 .. code-block:: bash
 
@@ -114,10 +109,11 @@ Where to Find Metrics
 
 When metrics export is enabled (``metrics=export`` or ``metrics=full``), metrics are saved to:
 
-- **Default path**: ``./metrics/metrics_run_[TIMESTAMP].csv``
+- **Default path**: ``./output/YEAR_MONTH_DAY/HOUR_MINUTE_SECOND/metrics_run.csv``
 - **Custom path**: Specified via ``metrics.out_dir_path=your/custom/path``
 
-The CSV file contains all metrics for each step of the simulation.
+The CSV file contains all metrics for each step of the simulation. In this directory, you can also find the hydra configuration
+used for the simulation in ``.hydra`` and the logs.
 
 Sending Metrics to External Services
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

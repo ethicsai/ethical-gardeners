@@ -1,4 +1,7 @@
 import unittest
+from unittest.mock import Mock
+
+from ethicalgardeners.agent import Agent
 from ethicalgardeners.gridworld import Flower
 
 
@@ -18,8 +21,9 @@ class TestFlower(unittest.TestCase):
             1: {"price": 5, "pollution_reduction": [0, 0, 1, 3]},
             2: {"price": 2, "pollution_reduction": [1]}
         }
+        self.agent = Mock(spec=Agent)
         self.flower = Flower(self.position, self.flower_type,
-                             self.flowers_data)
+                             self.flowers_data, self.agent)
 
     def test_grow_from_initial_stage(self):
         """Test flower growth from its initial stage.
