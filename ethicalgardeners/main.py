@@ -139,7 +139,7 @@ def make_env(config=None):
     )
 
     # Initialise metrics collector
-    metrics_out_dir = config.metrics.get("out_dir_path", "./metrics")
+    metrics_out_dir = config.metrics.get("out_dir_path", "outputs")
     export_metrics = config.metrics.get("export_on", False)
     send_metrics = config.metrics.get("send_on", False)
 
@@ -177,7 +177,7 @@ def make_env(config=None):
         post_analysis_on = config.renderer.graphical.get(
             "post_analysis_on", False
         )
-        out_dir = config.renderer.graphical.get("out_dir_path", "./videos")
+        out_dir = config.renderer.graphical.get("out_dir_path", "outputs")
         cell_size = config.renderer.graphical.get("cell_size", 50)
         colors = config.renderer.graphical.get("colors", None)
 
@@ -195,7 +195,7 @@ def make_env(config=None):
         post_analysis_on = config.renderer.console.get(
             "post_analysis_on", False
         )
-        out_dir = config.renderer.console.get("out_dir_path", "./videos")
+        out_dir = config.renderer.console.get("out_dir_path", "outputs")
         characters = config.renderer.console.get("characters", None)
 
         console_renderer = ConsoleRenderer(

@@ -632,7 +632,7 @@ To use this new renderer, you would configure it in your config:
       heatmap:
          enabled: true
          post_analysis_on: true
-         out_dir_path: "./videos"
+         out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
          cmap: 'coolwarm'
 
 And modify the :py:func:`~ethicalgardeners.main.make_env` function to include the new renderer:
@@ -648,7 +648,7 @@ And modify the :py:func:`~ethicalgardeners.main.make_env` function to include th
             post_analysis_on = config.renderer.heatmap.get(
                 "post_analysis_on",  False
             )
-            out_dir = config.renderer.heatmap.get("out_dir_path", "./videos")
+            out_dir = config.renderer.heatmap.get("out_dir_path", "outputs")
             cmap = config.renderer.heatmap.get("cmap", 'coolwarm')
 
             heatmap_renderer = HeatmapRenderer(

@@ -80,7 +80,7 @@ observation:
 
 # Metrics configuration
 metrics:
-  out_dir_path: "./metrics"
+  out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
   export_on: true
   send_on: false
 
@@ -89,7 +89,7 @@ renderer:
   graphical:
     enabled: true
     post_analysis_on: false
-    out_dir_path: "./videos"
+    out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
     cell_size: 50
     colors:
       background: [255, 255, 255]
@@ -97,7 +97,7 @@ renderer:
   console:
     enabled: false
     post_analysis_on: false
-    out_dir_path: "./videos"
+    out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
     characters:
       ground: " "
       wall: "#"

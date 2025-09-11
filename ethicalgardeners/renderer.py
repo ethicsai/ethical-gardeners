@@ -290,8 +290,6 @@ class GraphicalRenderer(Renderer):
             when post_analysis_on is True.
         frames (list): Collection of rendered frames for video generation
             when post_analysis_on is True.
-        _run_id (int): Unique identifier for the run, used to name output files
-            when post_analysis_on is True.
     """
 
     def __init__(self, cell_size=32, colors=None, post_analysis_on=False,
@@ -348,13 +346,6 @@ class GraphicalRenderer(Renderer):
         # Create Pygame window and clock
         self.window = None
         self.clock = None
-
-        self._run_id = None  # Unique identifier for the run
-
-        if post_analysis_on:
-            import time
-
-            self._run_id = int(time.time())
 
         self.frames = []  # List to store frames for video generation
 
@@ -596,7 +587,7 @@ class GraphicalRenderer(Renderer):
             # Define video properties based on the first frame
             height, width, _ = self.frames[0].shape
             output_path = os.path.join(self.out_dir_path,
-                                       f'simulation_video_{self._run_id}.mp4')
+                                       'simulation_video.mp4')
 
             # Create video writer
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
