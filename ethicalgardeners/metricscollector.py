@@ -269,7 +269,8 @@ class MetricsCollector:
                 os.makedirs(self.out_dir_path)
 
             # Generate filename with run_id
-            filename = os.path.join(self.out_dir_path, "metrics_run.csv")
+            filename = os.path.join(self.out_dir_path,
+                                    "simulation_metrics.csv")
 
             # Prepare row with metrics
             metrics_row = self._prepare_metrics()

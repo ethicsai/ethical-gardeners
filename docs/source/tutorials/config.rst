@@ -210,7 +210,7 @@ Hydra supports dynamic expressions, so you can use `${now: }` with:
 - `%M`: Minute
 - `%S`: Second
 
-By default, the output directory will be outputs/YEAR_MONTH_DAY/HOUR_MINUTE_SECOND. This directory will store the csv file named metrics_run.csv as well as the hydra configuration used for the simulation in the ``.hydra`` directory and the logs.
+By default, the output directory will be outputs/YEAR_MONTH_DAY/HOUR_MINUTE_SECOND. This directory will store the csv file named simulation_metrics.csv as well as the hydra configuration used for the simulation in the ``.hydra`` directory and the logs.
 
 .. _wandb-parameters:
 
@@ -259,9 +259,9 @@ Two types of renderers are available and can be used individually or together:
 
       console:
         enabled: true
-        post_analysis_on: false    # Save graphical visualization as video by creating a GraphicalRenderer without display
-        out_dir_path: "./videos"   # Directory for video output
-        characters:                # Customizable characters for different elements
+        post_analysis_on: false                                 # Save graphical visualization as video by creating a GraphicalRenderer without display
+        out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}   # Directory for video output
+        characters:                                             # Customizable characters for different elements
           ground: " "
           obstacle: "#"
           agent: "A"
@@ -275,10 +275,10 @@ Two types of renderers are available and can be used individually or together:
 
       graphical:
         enabled: true
-        post_analysis_on: false    # Save visualization as video
-        out_dir_path: "./videos"   # Directory for video output
-        cell_size: 50              # Size of each cell in pixels
-        colors:                    # Customizable color scheme
+        post_analysis_on: false                                 # Save visualization as video
+        out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}   # Directory for video output
+        cell_size: 50                                           # Size of each cell in pixels
+        colors:                                                 # Customizable color scheme
           background: [255, 255, 255]
           obstacle: [100, 100, 100]
           ground: [70, 255, 70]    # define the red and blue components of the displayed ground color
@@ -427,7 +427,7 @@ When specifying configurations, it's important to follow Hydra's hierarchical st
       console:
         enabled: true
         post_analysis_on: false
-        out_dir_path: "./videos"
+        out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
         cell_size: 50
         colors:
           background: [255, 255, 255]

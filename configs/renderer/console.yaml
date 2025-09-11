@@ -3,7 +3,7 @@ graphical:
 console:
   enabled: true
   post_analysis_on: true
-  out_dir_path: "./videos"
+  out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
   characters:
     ground: " "
     obstacle: "#"
