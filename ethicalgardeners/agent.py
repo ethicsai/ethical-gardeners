@@ -15,9 +15,12 @@ class Agent:
         money (float): The agent's current monetary wealth.
         seeds (dict): Dictionary mapping flower types to the number of seeds
             the agent has.
-        flowers_planted (dict): Counter of flowers currently planted on the
-            grid by type.
-        flowers_harvested (dict): Counter of flowers harvested by type.
+        flowers_planted (dict): Counter of flowers this agent has planted on
+            the grid by type.
+        flowers_harvested (dict): Counter of flowers this agent has harvested
+            by type. (Note that, because an agent can harvest flowers planted
+            by another agent, this counter can be very different from the
+            ``flowers_planted`` counter.)
         turns_without_income (int): Number of turns the agent has not earned
             money.
         action_mask (list): Action mask indicating valid actions for the agent.

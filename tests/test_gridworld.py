@@ -17,7 +17,7 @@ class TestWorldGrid(unittest.TestCase):
         self.temp_file_path = self.temp_file.name
         self.temp_file.write(b"5 5\n")
         self.temp_file.write(b"G G G O O\n")
-        self.temp_file.write(b"G F0_0_2 G G O\n")
+        self.temp_file.write(b"G F0_2 G G O\n")
         self.temp_file.write(b"G O G A0 O\n")
         self.temp_file.write(b"G G G G O\n")
         self.temp_file.write(b"O O O O O\n")
@@ -85,7 +85,6 @@ class TestWorldGrid(unittest.TestCase):
         self.assertTrue(self.test_grid.grid[1][1].has_flower())
         flower = self.test_grid.grid[1][1].flower
         self.assertEqual(flower.flower_type, 0)
-        self.assertEqual(flower.planted_by, self.test_grid.agents[0])
         self.assertEqual(flower.current_growth_stage, 2)
 
         # Check agent placement

@@ -163,11 +163,11 @@ class GridWorld:
 
         # Place flowers in the grid and add them to the flowers dictionary
         if flowers is not None:
-            for position, flower_type, agent, growth_stage in flowers:
+            for position, flower_type, growth_stage in flowers:
                 if not self.valid_position(position):
                     raise ValueError(
                         f"Invalid position for flower: {position}")
-                self.place_flower(position, flower_type, agent, growth_stage)
+                self.place_flower(position, flower_type, None, growth_stage)
 
     @classmethod
     def init_from_file(cls, init_config, random_generator=None,
@@ -180,9 +180,11 @@ class GridWorld:
         The file format supports:
 
         - First line: width height
-        - Grid representation: G (ground), O (obstacle),
-          FX_Y_Z (ground with flower type X planted by agent of id Y at growth
-          stage Z), AX (ground with agent ID X)
+        - Grid representation:
+          - G (ground)
+          - O (obstacle)
+          - FX_Y (ground with flower type X at growth stage Y)
+          - AX (ground with agent ID X)
         - Agent definitions: ID,money,seeds
         - Flowers_data definition: type,price,pollution_reduction
 
@@ -235,10 +237,8 @@ class GridWorld:
                     grid[i][j] = Cell(CellType.GROUND)
                     flower_info = cell_code[1:].split('_')
                     flower_type = int(flower_info[0])
-                    planter_agent_id = int(flower_info[1])
-                    growth_stage = int(flower_info[2])
-                    flowers_to_create[(i, j)] = (flower_type, planter_agent_id,
-                                                 growth_stage)
+                    growth_stage = int(flower_info[1])
+                    flowers_to_create[(i, j)] = (flower_type, growth_stage)
                 elif cell_code.startswith('A'):
                     grid[i][j] = Cell(CellType.GROUND)
                     agent_id = int(cell_code[1:])
@@ -275,11 +275,8 @@ class GridWorld:
 
         # Place flowers with their growth stage
         flowers = []
-        for position, (flower_type, planter_agent_id,
-                       growth_stage) in flowers_to_create.items():
-            flowers.append((position, flower_type,
-                            agents[planter_agent_id],
-                            growth_stage))
+        for position, (flower_type, growth_stage) in flowers_to_create.items():
+            flowers.append((position, flower_type, growth_stage))
 
         return cls("from_file", init_config, width, height,
                    min_pollution, max_pollution, pollution_increment,
@@ -415,7 +412,6 @@ class GridWorld:
                         'flowers': [  # List of flowers to create (optional:
                                       # growth stage)
                             {'position': (row, col), 'type': int,
-                            'agent': int,  # Index of the agent who planted it
                             'growth_stage': int},
                         ]
                     }
@@ -493,11 +489,9 @@ class GridWorld:
         for flower_info in grid_config.get('flowers', []):
             position = flower_info['position']
             flower_type = flower_info['type']
-            agent_id = flower_info.get('agent', 0)
             growth_stage = flower_info.get('growth_stage', 0)
 
-            flowers.append((position, flower_type, agents[agent_id],
-                            growth_stage))
+            flowers.append((position, flower_type, growth_stage))
 
         return cls("from_code", init_config, width=width,
                    height=height, min_pollution=min_pollution,
@@ -651,7 +645,7 @@ class GridWorld:
         cell.agent = agent
         self.agents.append(agent)
 
-    def place_flower(self, position, flower_type: int, agent: Agent,
+    def place_flower(self, position, flower_type: int, agent: Agent = None,
                      growth_stage=0):
         """
         Place a flower in the grid at its specified position.
@@ -660,7 +654,7 @@ class GridWorld:
             position (tuple): The (x, y) coordinates where the flower will be
                 planted.
             flower_type (int): The type of flower to plant.
-            agent (Agent): The agent planting the flower.
+            agent (Agent, optional): The agent planting the flower.
             growth_stage (int, optional): The initial growth stage of the
                 flower (default is 0).
 
@@ -924,11 +918,12 @@ class Flower:
         num_growth_stage (int): Total number of growth stages for this flower.
         current_growth_stage (int): Current growth stage of the flower,
             starting at 0.
-        planted_by (Agent): The agent who planted the flower.
+        planted_by (Agent, optional): The agent who planted the flower. Can be
+            None if the flower was initially present in the environment.
     """
 
     def __init__(self, position, flower_type, flowers_data: dict,
-                 agent: Agent, growth_stage=0):
+                 agent: Agent = None, growth_stage=0):
         """
         Create a new flower.
 
