@@ -1,0 +1,16 @@
+10 10
+G G G O O G G G G G
+G F0_2 G G G O G G G G
+G O G A0 O G G G G G
+G G G G O G G G G G
+O O O O O G G G G G
+G G G G G G G G G G
+G G G G G G G A1 G G
+G G G G G G G G G G
+G G G G G G G G G G
+G G G G G G G G G G
+0,100,5|10|3
+1,100,5|10|3
+0,10,1|2|5
+1,5,0|1|3
+2,2,0|1
