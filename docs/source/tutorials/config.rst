@@ -210,7 +210,7 @@ Hydra supports dynamic expressions, so you can use `${now: }` with:
 - `%M`: Minute
 - `%S`: Second
 
-By default, the output directory will be outputs/YEAR_MONTH_DAY/HOUR_MINUTE_SECOND. This directory will store the csv file named simulation_metrics.csv as well as the hydra configuration used for the simulation in the ``.hydra`` directory and the logs.
+By default, the output directory will be outputs/YEAR-MONTH-DAY/HOUR-MINUTE-SECOND. This directory will store the csv file named ``simulation_metrics.csv`` as well as the hydra configuration used for the simulation in the ``.hydra`` directory and the logs.
 
 .. _wandb-parameters:
 
