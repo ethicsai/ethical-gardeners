@@ -169,7 +169,9 @@ class ActionHandler:
         agent.flowers_harvested[flower.flower_type] += 1
 
         planter_agent = flower.planted_by
-        planter_agent.flowers_planted[flower.flower_type] -= 1
+        # Remember that initially planted flowers do not have a planter
+        if planter_agent is not None:
+            planter_agent.flowers_planted[flower.flower_type] -= 1
 
     def wait(self, agent: Agent):
         """
