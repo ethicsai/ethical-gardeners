@@ -1,0 +1,13 @@
+defaults:
+  - hydra/launcher=submitit_slurm
+
+hydra:
+  launcher:
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    submitit_folder: ${hydra.sweep.dir}/.submitit/%j
+    timeout_min: 5
+    cpus_per_task: 1
+    tasks_per_node: 1
+    mem_gb: 4
+    nodes: 1
+    name: ethical-gardeners_${hydra.job.name}

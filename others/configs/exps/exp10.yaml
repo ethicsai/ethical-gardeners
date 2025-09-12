@@ -1,0 +1,61 @@
+# General configuration
+random_seed: 42
+num_iterations: 10000
+render_mode: "none"  # "none" or "human"
+
+# Hydra overrides
+hydra:
+  run:
+    dir: ${metrics.out_dir_path}   # put Hydra outputs next to the metrics
+  output_subdir: .hydra
+
+# Grid configuration
+grid:
+  init_method: "random"  # "from_file", "random", or "from_code"
+
+  # Common parameters for init_random and init_from_file
+  min_pollution: 0
+  max_pollution: 100
+  pollution_increment: 1
+  num_seeds_returned: 1
+  collisions_on: true
+  flowers_data:
+    0:
+      price: 10
+      pollution_reduction: [ 0, 0, 0, 0, 5 ]
+    1:
+      price: 5
+      pollution_reduction: [ 0, 0, 1, 3 ]
+    2:
+      price: 1
+      pollution_reduction: [ 0, 1 ]
+
+  # Parameters for init_random
+  width: 20
+  height: 20
+  obstacles_ratio: 0
+  nb_agent: 2
+
+# Observation configuration
+observation:
+  type: "partial"  # "total" or "partial"
+  range: 1  # For partial observation
+
+# Metrics configuration
+metrics:
+  out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  export_on: true
+  send_on: true
+
+# Rendering configuration
+renderer:
+  console:
+    enabled: true
+    post_analysis_on: true
+    out_dir_path: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    characters:
+      ground: " "
+      wall: "#"
+      obstacle: "O"
+      agent: "A"
+      flower: "F"
