@@ -109,7 +109,7 @@ Where to Find Metrics
 
 When metrics export is enabled (``metrics=export`` or ``metrics=full``), metrics are saved to:
 
-- **Default path**: ``./output/YEAR_MONTH_DAY/HOUR_MINUTE_SECOND/simulation_metrics.csv``
+- **Default path**: ``./output/YEAR-MONTH-DAY/HOUR-MINUTE-SECOND/simulation_metrics.csv``
 - **Custom path**: Specified via ``metrics.out_dir_path=your/custom/path``
 
 The CSV file contains all metrics for each step of the simulation. In this directory, you can also find the hydra configuration
@@ -157,7 +157,7 @@ Where to Find post-analysis Videos
 
 When post-analysis is enabled (``renderer.console.post_analysis_on=True`` or ``renderer.graphical.post_analysis_on=True``), videos using the graphical visualization are saved to the same directory as metrics:
 
-- **Default path**: ``./output/YEAR_MONTH_DAY/HOUR_MINUTE_SECOND/simulation_video.mp4``
+- **Default path**: ``./output/YEAR-MONTH-DAY/HOUR-MINUTE-SECOND/simulation_video.mp4``
 - **Custom path**: Specified via ``renderer.console.out_dir_path`` or ``renderer.graphical.out_dir_path``
 
 Example: Complete Analysis Configuration
