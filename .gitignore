@@ -5,3 +5,6 @@
 
 # Python
 **/__pycache__
+
+# SubmitIt (slurm launcher for Hydra)
+multirun/
